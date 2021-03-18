@@ -1,0 +1,8 @@
+
+#Emacs temp saves
+*~
+
+#ROS2 files which shouldn't be tracked
+sailbot_ws/log/*
+sailbot_ws/install/*
+sailbot_ws/build/*
