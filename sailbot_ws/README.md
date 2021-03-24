@@ -51,7 +51,38 @@ On Mac, you can first connect the powered ethernet bridge to your machine. Your 
 # Running the Nodes
 To run the boat, first connect over SSH, and navigate into this directory (sailbot20-21/sailbot_ws)
 
+Once in the sailbot_ws directory, you need to build the ros package with the following commands:
 
+```
+colcon build --packages-select sailbot
+source /opt/ros/dashing/setup.bash 
+. install/setup.bash
+```
+
+Once built and sourced, you can use the ros2 commands to start nodes. The possible nodes you can start and their corresponding commands are:
+
+```
+ros2 run sailbot serial_rc_receiver
+ros2 run sailbot pwm_controller
+ros2 run sailbot teensy_comms
+ros2 run sailbot airmar_reader
+ros2 run sailbot control_system
+```
+
+If you want to moniter the nodes individually, you can use multiple ssh clients each with their own 
+
+
+If you would like to start all of the nodes use:
+
+```
+ros2 launch sailbot full_launch.py
+```
+
+And to start with info messages use:
+
+```
+ros2 launch sailbot full_debug.py
+```
 
 
 
