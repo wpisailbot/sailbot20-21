@@ -47,6 +47,11 @@ On Mac, you can first connect the powered ethernet bridge to your machine. Your 
 6. then click "apply"
 7. test by pinging 192.168.17.17 (the target IP for the express ethernet bridge in the hull)
 
+# Starting the WiFi
+```
+sudo nmcli device wifi hotspot con-name sailbothot ssid sailbothot band bg password salad123
+```
+
 
 # Running the Nodes
 To run the boat, first connect over SSH, and navigate into this directory (sailbot20-21/sailbot_ws)
