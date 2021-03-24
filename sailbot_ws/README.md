@@ -1,6 +1,11 @@
 
 # Overview of the ROS Architecture
+All the code is in sailbot20-21/sailbot_ws/src/sailbot/sailbot
+The path has to be this long unfortunately since we need our git repo, then our ros workspace, then our ros package, then our python package
 
+To ensure you have dependancies installed, run 
+```rosdep install -i --from-path src --rosdistro dashing -y``` 
+from this directory (sailbot20-21/sailbot_ws)
 
 # Connection Via SSH
 
@@ -33,6 +38,8 @@ The password is "admin"
 
 
 # Running the Nodes
-To run the boat,
+To run the boat, first connect over SSH, and navigate into this directory (sailbot20-21/sailbot_ws)
+
+
 
 
