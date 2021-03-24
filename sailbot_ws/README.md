@@ -35,10 +35,24 @@ Now you should be able to shh with putty at sailbot@192.168.17.20
 The password is "admin"
 
 ### On Mac
+<i>this is intended for those running macOS Catalina. you can find further instuctions for your version online by searching "how to manually set your IP address - Mac"</i>
+
+On Mac, you can first connect the powered ethernet bridge to your machine. Your Mac should recognize that a new network connection is available
+
+1. go to your network settings
+2. navigate to a network with the name "USB 10/100/1000 LAN"
+3. change the "Configure IPv4" setting to "Manually"
+4. set the IP address to be anything on the 192.168.17 (Class C) subnet, you may not use address 17 or 20 as those are reserved for the target and the express ethernet bridge you are connected to. For my purposes, I set the IP to 192.168.17.4 as 4 is my favorite number (must be between 0 and 255)
+5. set the subnet mask to be "255.255.255.0"
+6. then click "apply"
+7. test by pinging 192.168.17.17 (the target IP for the express ethernet bridge in the hull)
 
 
 # Running the Nodes
 To run the boat, first connect over SSH, and navigate into this directory (sailbot20-21/sailbot_ws)
+
+
+
 
 
 
