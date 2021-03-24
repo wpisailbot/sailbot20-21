@@ -89,6 +89,9 @@ And to start with info messages use:
 ros2 launch sailbot full_debug.py
 ```
 
+# Additional Notes
+
+Rememeber to rebuild and resource every time you change the code! (otehrwise you will run the old code)
 
 
 
