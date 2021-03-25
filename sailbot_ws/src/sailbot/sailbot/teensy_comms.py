@@ -52,7 +52,7 @@ class TeensyComms(Node):
         self.subscription  # prevent unused variable warning
 
     def bind_socket(self):
-	self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         self.s.bind((OWN_IP,TRIM_PORT))
         print("bound")
