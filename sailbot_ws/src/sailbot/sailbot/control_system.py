@@ -69,7 +69,7 @@ class ControlSystem(Node):
 
     def findTrimTabState(self, relativeWind):
         #check we have new wind
-        if(relativeWind == self.lastWinds[len(self.lastWinds) -1]):
+        if(len(self.lastWinds) != 0 and relativeWind == self.lastWinds[len(self.lastWinds) -1]):
             return       
         #first add wind to running list
         self.lastWinds.append(float(relativeWind))
