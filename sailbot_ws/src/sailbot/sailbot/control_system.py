@@ -72,30 +72,30 @@ class ControlSystem(Node):
         if(relativeWind == self.lastWinds[len(self.lastWinds) -1]):
             return       
         #first add wind to running list
-        self.lastWinds.append(relativeWind)
+        self.lastWinds.append(float(relativeWind))
         if(len(self.lastWinds) > 10):
-            lastWinds.pop(0)
+            self.lastWinds.pop(0)
         #now find best trim tab state
         smoothAngle = self.median(self.lastWinds)
         if(smoothAngle >= 45.0 and smoothAngle < 90):
             #max lift starboard
-            toPub = makeJsonString({"state":"1"})
+            toPub = self.makeJsonString({"state":"1"})
             self.teensy_control_publisher_.publish(toPub)
         elif(smoothAngle >= 90 and smoothAngle < 180):
             #max drag starboard
-            toPub = makeJsonString({"state":"3"})
+            toPub = self.makeJsonString({"state":"3"})
             self.teensy_control_publisher_.publish(toPub)
         elif(smoothAngle >= 180 and smoothAngle < 270):
             #max drag port
-            toPub = makeJsonString({"state":"2"})
+            toPub = self.makeJsonString({"state":"2"})
             self.teensy_control_publisher_.publish(toPub)
         elif(smoothAngle >= 270 and smoothAngle < 315):
             #max lift port
-            toPub = makeJsonString({"state":"0"})
+            toPub = self.makeJsonString({"state":"0"})
             self.teensy_control_publisher_.publish(toPub)
         else:
             #in irons, min lift
-            toPub = makeJsonString({"state":"4"})
+            toPub = self.makeJsonString({"state":"4"})
             self.teensy_control_publisher_.publish(toPub)
         
 
