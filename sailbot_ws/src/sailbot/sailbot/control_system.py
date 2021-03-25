@@ -138,7 +138,7 @@ def main(args=None):
         elif(inRC):
             if(float(control_system.serial_rc["state1"]) < 400):
                 #manual
-                manualAngle = int((float(control_system.serial_rc["manual"]) / 2000) * 86) + 72
+                manualAngle = int((float(control_system.serial_rc["manual"]) / 2000) * 100) + 65
                 toPub = control_system.makeJsonString({"state":"5","angle":manualAngle})
                 control_system.teensy_control_publisher_.publish(toPub)
             elif("wind-angle-relative" in control_system.airmar_data ):
