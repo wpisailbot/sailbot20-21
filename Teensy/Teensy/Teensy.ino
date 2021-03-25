@@ -5,25 +5,26 @@
  * @brief File containing the execution code for the teensy embedded within the adjustable trim tab
  * @version 0.2
  * @date 2020-11-18
- * @copyright Copyright (c) 2020 
+ * @copyright Copyright (c) 2020
+ * @TODO: see if any of these variables can be moved into the constants file 
  */
 
-// Programmer defined files
+/* programmer defined files */
 #include "TrimTabMessages.pb.h"
 #include "Constants.h"
 
-// Libraries
+/* libraries */
 #include <WiFiEsp.h>                          //driver code for ESP8266 module
 #include "SoftwareSerial.h"                   //driver code for converting ESP8266 to Serial output
 #include <Servo.h>                            //driver code for operating servo
 #include <IPAddress.h>                        //library to assist in IP addressing (primarily to connect the teensy to the Jetson)
 #include <ArduinoJson.h>                      //library to assist in the serialization and deserialization of JSON documents
 
-// ESP8266 buffers 
-uint8_t rx_buffer[32];                        // receive buffer
-unsigned char tx_buffer[32];                  // transmission buffer
+/* requests and response buffers */
+uint8_t rx_buffer[64];                        // receive buffer
+unsigned char tx_buffer[64];                  // transmission buffer
 
-// Wifi variables
+/* Wifi variables */
 SoftwareSerial ESPSerial(RX2pin, TX2pin);     // RX2, TX2
 char ssid[] = "sailbothot";                   // Name of the hull network
 char pass[] = "salad123";                     // Password to hull network
@@ -32,7 +33,7 @@ WiFiEspClient client;                         // communication between jetson se
 bool connection = false;                      // connection indicator
 volatile int count = 0;                       // count to have leds blink
 
-// Control variables
+/* Control variables */
 volatile int ledState = LOW;
 volatile unsigned long blinkCount = 0;        // use volatile for shared variables
 volatile int vIn = 0;                         // Battery voltage
@@ -42,10 +43,8 @@ IntervalTimer servoTimer;
 volatile int missed_msgs = 0;
 Servo servo;
 volatile float windAngle;                     // Mapped reading from wind direction sensor on the front of the sail
-volatile int32_t control_angle;
+int control_angle = SERVO_CTR;
 bool readingNow = false;
-
-IPAddress testAddr = IPAddress(10,42,0,1);
 
 int timeSinceLastComm = 0;
 int timeout = 1000;
@@ -63,6 +62,7 @@ void setup()
   ESPSerial.begin(115200);
   // initialize ESP module
   WiFi.init(&ESPSerial);
+  
   establishConnection();
 
   pinMode(vInPin, INPUT);
@@ -74,90 +74,118 @@ void setup()
   servo.attach(servoPin);
   servo.write(SERVO_CTR);
 
-  LEDtimer.begin(blinkState, 916682);
-
-  servoTimer.begin(servoControl, 50000);
+  servoTimer.begin(servoControl, 500000);
+  LEDtimer.begin(blinkState, 500000);
 }
 
 void loop()
 {
   vIn = analogRead(vInPin);
-  simpleSendReceive();
+  JetsonSendReceive();
 }
 
-void simpleSendReceive()
+/** 
+ * @author  Connor Burri
+ * @brief   Reads incoming messages from Jetson Nano and transmits messages to Jetson Nano; uses JSON
+ * @details Writes the relative wind angle direction to the sail to the Jetson Nano over a socket connection
+ *          then it receives a command from the Jetson Nano. This write/read command cycles repeatedly as long
+ *          as there is a connection over the socket. If no connection is found then there will be an attempt to 
+ *          reconnect the Teensy to the Jetson Nano.
+ */
+void JetsonSendReceive()
 {
+   // ensure that a connection is bridged before attempting to read or write
   if (!connection)
   {
     client.stop();
     establishConnection();
-  } else {
+  } 
+  // alternate between writing data to the jetson and reading data from the jetson 
+  else {
     if(!readingNow){
       writeJson();
     }
     if(readingNow){
       readJson();
-    }3
-  }
-  delay(3000);
-}
-
-/* 
- * @author Connor Burri
- */
-void readJson(){
-  // determines if there is data available to receive
-  int isData = client.available() > 0 ? 1 : 0;
-  int bytes = client.available();
-
-  // reads the data from the ESP8266
-  if(isData){
-    for(int i = 0; i < bytes; i++){
-      rx_buffer[i] = (uint8_t)client.read();
     }
   }
-
-  // getting the size of the data read from the ESP8266
-  size_t rx_buffer_size = sizeof(rx_buffer)/sizeof(rx_buffer[0]);
-
-  for(int i = 0; i< rx_buffer_size; i++){
-    Serial.print(rx_buffer[i]);
-  }
-  Serial.println("");
-
-  // constructing the JSON to be stored on the stack; this is data is coming from the jetson
-  DynamicJsonDocument responseJSON(256);
-
-  // converting the data from the ESP8266 to a JSON document and storing it
-  DeserializationError err = deserializeJson(responseJSON, rx_buffer, rx_buffer_size);
-
-  // checking to make sure that deserialization performed as expected
-  if(err){
-    Serial.println("DESERIALIZATION FAILED");
-    Serial.println(err.c_str());
-  }
-  else
-  {
-    const char* con = responseJSON["connor"];
-    Serial.println("DESERIALIZATION WORKED");
-    Serial.println(con);
-  }
-
-  
-//  control_angle = (controlAngle.control_angle-980)*PWMScaler;
-//  state = controlAngle.state;
-//
-//  missed_msgs = 0;
-    readingNow = false;
-    timeSinceLastComm = millis();
+  delay(2000);
 }
 
+/** 
+ * @author  Connor Burri
+ * @brief   Reads in data from ESP8266 and deserializes data into a JSON
+ * @bug     JSON objects requires a lot of memory (relative); not a pressing issue but still something to keep in mind
+ */
+void readJson(){
+  if(client.connected()){
+    
+    // determines if there is data available to receive
+    int isData = client.available() > 0 ? 1 : 0;
+    int bytes = client.available();
+  
+    // reads the data from the ESP8266
+    if(isData){
+      for(int i = 0; i < bytes; i++){
+        rx_buffer[i] = (uint8_t)client.read();
+      }
+  
+      // getting the size of the data read from the ESP8266
+      size_t rx_buffer_size = sizeof(rx_buffer)/sizeof(rx_buffer[0]);
+    
+      // constructing the JSON to be stored on the stack; this is data is coming from the jetson
+      DynamicJsonDocument responseJSON(256);
+    
+      // converting the data from the ESP8266 to a JSON document and storing it
+      DeserializationError err = deserializeJson(responseJSON, rx_buffer, sizeof(rx_buffer));
+    
+      // checking to make sure that deserialization performed as expected
+      if(err){
+        Serial.println("DESERIALIZATION FAILED!");
+        Serial.println(err.c_str());
+      }
+      else
+      {
+        String stateString = responseJSON["state"];
+        if(stateString == "5"){
+          state = TrimState_TRIM_STATE_MANUAL;
+        }
+        Serial.print("State: ");
+        Serial.println(stateString);
+        if(state == TrimState_TRIM_STATE_MANUAL){
+            String angleString = responseJSON["angle"];
+            int newAngle = angleString.toInt();
+            int oldAngle = control_angle;
+            control_angle = newAngle;
+            if(newAngle != oldAngle){
+              Serial.print("Angle: ");
+              Serial.println(angleString);
+            }
+        }
+      }
+    }
+  }
+  else{
+    connection = false;
+  }
+
+  //ready to read next message
+  readingNow = false;
+  
+  //timeSinceLastComm = millis();
+}
+
+/** 
+ * @author  Connor Burri
+ * @brief   writes data in JSON string format to Jetson using ESP8266 interface
+ * @bug     JSON objects requires a lot of memory (relative); not a pressing issue but still something to keep in mind
+ */
 void writeJson(){
   //prepare the JSON document
   DynamicJsonDocument json(256);
   
   //assigning the data
-  json["relative_wind_dir"] = 1; //windAngle; 
+  json["relative_wind_dir"] = analogRead(potPin); //windAngle; 
 
   //string representation of the JsonDocument
   String jsonString;
@@ -168,33 +196,46 @@ void writeJson(){
   //checking that the data was serialized
   if(bytesSerialized){
     //print what is being sent beforehand
-    Serial.println("Sending:");
-    Serial.println(jsonString);
+    //Serial.println("Sending:");
+    //Serial.println(jsonString);
 
     //send the message over the ESP8266
     for(int i = 0; i < jsonString.length(); i++){
       tx_buffer[i] = jsonString.charAt(i);
     }
-    int dataWritten =  client.write(tx_buffer, bytesSerialized);
+
+    int dataWritten = 0;
+    if(client.connected()){
+       dataWritten = client.write(tx_buffer, bytesSerialized);
+    }
+    else{
+      connection = false;
+    }
 
     //check to make sure the data was sent to the server
     if(dataWritten){
-      readingNow = true;
       timeSinceLastComm = millis();
     }
     else{
-      Serial.println("ERROR: ESP8266 FAILED TO SEND TO SERVER");
+      Serial.println("ERROR: ESP8266 FAILED TO SEND TO SERVER, ATTEMPTING READ AND WE WILL COME BACK TO THIS");
     }
     
   }
  else{
-    Serial.println("ERRORFailed to Serialize the data");
+    Serial.println("ERROR Failed to Serialize the data");
   }
+
+  // changing so that we are ready to read again
+  readingNow = true;
 }
 
-
+/**
+ * @author Irina Lavryonova
+ * @brief establishes a connection between the Teensy and Jetson Nano
+ */
 void establishConnection()
 {
+
   // check for the presence of the shield
   if (WiFi.status() == WL_NO_SHIELD)
   {
@@ -216,21 +257,24 @@ void establishConnection()
   printWifiStatus();
 
   Serial.println("\nStarting connection to server...");
-//  if (client.connect(hullIP, 50000))
-  if (client.connect(testAddr, 50000))
+  if (client.connect(hullIP, port))
   {
     Serial.println("Connected to server!!!");
     connection = true;
+    digitalWrite(wifiLED, HIGH);
   }
   else{
     Serial.println("Failed to connect to server!");
+    connection = false;
   }
   Serial.print("Listening on port ");
   Serial.println(50000);
-  missed_msgs = 0;
-  retryCount = 0;
 }
 
+/**
+ * @author Irina Lavryonova
+ * @brief Ends the connection between Teensy and Jetson Nano and attempts to reconnect
+ */
 void clearConnection()
 {
   WiFi.disconnect();
@@ -238,8 +282,9 @@ void clearConnection()
 }
 
 /**
+ * @author Irina Lavryonova
  * @brief Sets the angle of the servo based on the angle of attack read from the encoder at the front
- * 
+ * @TODO: send this state to the telemetry interface
  */
 void servoControl()
 {
@@ -247,6 +292,8 @@ void servoControl()
   windAngle = analogRead(potPin) - POT_HEADWIND;                                            // reads angle of attack data and centers values on headwind
   windAngle = windAngle < 0 ? POT_HEADWIND + windAngle + (1023 - POT_HEADWIND) : windAngle; // wraps angle around
   windAngle = windAngle / 1023.0 * 360.0 - 180;                                             // Convert to degrees, positive when wind from 0-180, negative when wind 180-359
+
+  //Serial.println(control_angle);
 
   // Set debug LEDs to on to indicate servo control is active
   digitalWrite(led1Pin, HIGH);
@@ -303,14 +350,39 @@ void servoControl()
       servo.write(SERVO_CTR);
       break;
     case TrimState_TRIM_STATE_MANUAL:
-      servo.write(control_angle);
+      servoStep(control_angle);
       break;
     default:
-      servo.write(control_angle);
+      servoStep(control_angle);
       break;
   }
 }
 
+void servoStep(int desiredAngle){
+  servo.write(desiredAngle);
+//  while(desiredAngle != control_angle){
+//    if(abs(desiredAngle-control_angle) < 5){
+//      control_angle = desiredAngle;
+//      servo.write(control_angle);
+//    }
+//    else{
+//      if(desiredAngle > control_angle){
+//        control_angle+=5;
+//      }
+//      else{
+//        control_angle-=5;
+//      }
+//      servo.write(control_angle);
+//      delay(500);
+//    }
+//  }
+}
+
+/**
+ * @author Irina Lavryonova
+ * @brief controls the blinking operations within the LEDS
+ * @TODO: send this state to the telemetry interface
+ */ 
 void blinkState()
 {
   // Toggle state
@@ -360,18 +432,48 @@ void blinkState()
   }
 }
 
+/**
+ * @author Irina Lavryonova
+ * @author Connor Burri
+ * @brief Prints the status of the connection between the Teensy and Jetson Nano
+ */
 void printWifiStatus()
 {
   // print the SSID of the network you're attached to
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
+  
   // print your WiFi shield's IP address
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
+  
   // print the received signal strength
-  long rssi = WiFi.RSSI();
-  Serial.print("Signal strength (RSSI):");
-  Serial.print(rssi);
+  printSignalIndication(WiFi.RSSI());
+}
+
+/**
+ * @author Connor Burri
+ * @brief prints the signal strength in a human understandable way
+ * @TODO: get this data over to the jetson for telemetry interface
+ */
+void printSignalIndication(long signalStrength){
+  Serial.print("Signal strength (RSSI): ");
+  Serial.print(signalStrength);
+  if(signalStrength > -30){
+    Serial.print(" (Amazing)");
+  }
+  else if(signalStrength > -67){
+    Serial.print(" (Very Good)");
+  }
+  else if(signalStrength > -70){
+    Serial.print(" (Okay)");
+  }
+  else if(signalStrength > -80){
+    Serial.print(" (Not Good)");
+  }
+  else{
+    Serial.print(" (Nearly Unusable)");
+  }
   Serial.println(" dBm");
 }
