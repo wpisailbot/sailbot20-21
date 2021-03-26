@@ -1,25 +1,25 @@
+const fs = require('fs');
 const http = require('http');
+const csv = require('fast-csv');
 const express = require('express');
 const socketIO = require('socket.io');
 const bodyParser = require('body-parser');
-const { MongoClient } = require("mongodb");
+
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const port = process.env.PORT || 3000;
 
-const url = "mongodb+srv://sailbothot:admin@cluster0.ay01x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&useNewUrlParser=true&useUnifiedTopology=true";
-const client = new MongoClient(url);
-
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-let countData = true;
-let dataTimeDiff = 0;
+const rcCsv = fs.createWriteStream('rcInput.csv', { flags: 'a' });
+const airmarCsv = fs.createWriteStream('airmarOut.csv', { flags: 'a' });
+const trimtabCsv = fs.createWriteStream('trimtabOut.csv', { flags: 'a' });
 
-let collection = undefined;
-const dbName = "Sailbot";
+let countData = true;
+let dataTimeDiff = 100;
 
 
 app.post('/boat', (req, res) => {
@@ -28,14 +28,17 @@ app.post('/boat', (req, res) => {
 		let data = req.body;
 		countData = false;
 
-		if (data.hasOwnProperty('latitude'))
+		if (data.hasOwnProperty('latitude')){
 			io.to('clients').emit('updateAirmarDash', req.body);
-		else if (data.hasOwnProperty('angle'))
+			addToDB(data, airmarCsv);
+		} else if (data.hasOwnProperty('angle')) {
 			io.to('clients').emit('updateTrimDash', req.body);
-		else if (data.hasOwnProperty('rudder'))
+			addToDB(data, trimtabCsv);
+		} else if (data.hasOwnProperty('rudder')) {
 			io.to('clients').emit('updateSerialControls', req.body);
+			addToDB(data, rcCsv);
+		}
 
-		addToDB(data);
 		setTimeout(() => countData = true, dataTimeDiff);
 	}
 	res.send(200);
@@ -53,19 +56,42 @@ io.on('connection', (socket) => {
 	});
 });
 
-const startDB = async () => {
-	await client.connect();
-	const db = client.db(dbName);
-	collection = db.collection("TestData");     
-	console.log("Connected correctly to collection");
-}
 
 // Function that will add to a database in the future
-const addToDB = async (data) => {
-	db.push(data); // implement real online and offline database eventually
-	await col.insertOne(data);
+const addToDB = async (data, file) => {
+	file.write('\n');
+	csv.writeToStream(
+	    	file,                  
+			[[...Object.values(data)]], 
+			{headers:false}
+	);
 }
 
-startDB();
+// addToDB({	'rate-of-turn': 6969, 
+// 				'latitude': 50, 
+// 				'latitude-direction': 50,
+// 				'longitude': 50,
+// 				'longitude-direction': 50,
+// 				'track-degrees-true': 50,
+// 				'track-degrees-magnetic': 50,
+// 				'speed-knots': 50,
+// 				'speed-kmh': 50,
+// 				'outside-temp': 50,
+// 				'atmospheric-pressure': 50,
+// 				'magnetic-sensor-heading': 50,
+// 				'magnetic-deviation': 50,
+// 				'magnetic-deviation-direction': 50,
+// 				'magnetic-variation': 50,
+// 				'magnetic-variation-direction': 50,
+// 				'wind-angle-true': 50,
+// 				'wind-speed-true-knots': 50,
+// 				'wind-speed-true-meters': 50,
+// 				'wind-angle-relative': 50,
+// 				'wind-speed-relative-meters': 50,
+// 				'roll': 50,
+// 				'pitch': 696969,
+// 			}, airmarCsv);
+
+
 // Server listen function
 server.listen(port, () => console.log('Listening on port: ' + port));
