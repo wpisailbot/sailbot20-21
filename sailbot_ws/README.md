@@ -1,4 +1,11 @@
 
+# General Jetson Info
+- The Jetson is running a version of ubuntu 18.04 provided by Nvidia. Info on the Jetson and the OS can be found here: https://developer.nvidia.com/embedded/learn/get-started-jetson-nano-devkit
+- The Jetson uses rc-local.service to run a script on startup which configures a few things including allowing non-root access to some serial devices and setting up the ethernet bridge connection. The sartup script can be found in the ~/ directory, and is called startup.sh. To check the status of the startup service, you can use ```systemctl status rc-local.service```. Using this to start the wifi unfortunately fails.
+- The ROS 2 distribution used is Dashing Diademata, and installation directions can be found here: https://docs.ros.org/en/dashing/Installation/Linux-Install-Debians.html 
+
+
+
 # Overview of the ROS Architecture
 All the code is in sailbot20-21/sailbot_ws/src/sailbot/sailbot
 The path has to be this long unfortunately since we need our git repo, then our ros workspace, then our ros package, then our python package
