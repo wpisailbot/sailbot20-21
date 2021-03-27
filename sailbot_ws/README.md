@@ -32,10 +32,13 @@ If that doesn't solve, try restarting your pc, turing off your firewall, etc.
 Once you see both bridges you may be able to ssh, but we've found it wont work unless you follow these steps:
 1. double click the ip ending in 20, and change the "target device new parameters" to be IP:192.168.17.21. keep all else the same.
 2. Hit apply
-3. The hit yes
-4. Then double click and change back to 192.168.17.20
-5. Hit apply. This should then fail. (If it does, carry on)
-6. Hit apply again. This should work.
+3. Then hit yes
+4. Hit search again and wait for it to discover (takes a moment)
+5. Then double click and change back to 192.168.17.20
+6. Hit apply. This may fail. (If it does, carry on)
+7. Hit apply again a second time. This should work.
+8. Lastly make sure the ethernet in your network connections is a static IPv4 which is 192.168.17.20
+9. Now if you run ipconfig you should see the ethernet as 192.168.17.20 and should be able to ping 192.168.17.17
 
 Now you should be able to shh with putty at sailbot@192.168.17.20
 
