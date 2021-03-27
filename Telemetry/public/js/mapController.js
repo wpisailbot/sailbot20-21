@@ -1,8 +1,10 @@
 let map, boatPath, latLines = [], lngLines = [], gridCenters = [], gridCenterPoints = [], debug = false;
 
-const attitash = { lat: 42.8489, lng: -70.9829 };
-const startPathCoords = [{ lat: 42.849810669147935, lng: -70.98818573987138 }];
-const gridCorners = {topleft: { lat: 42.85414938719151, lng: -70.98833200038395 }, botleft: { lat: 42.84417554052568, lng: -70.98833200038395 }, botright: { lat: 42.84401759443596, lng: -70.97532473965633 }, topright: { lat: 42.85367747491202, lng: -70.97532473965633 }};
+// const attitash = { lat: 42.8489, lng: -70.9829 };
+// const startPathCoords = [{ lat: 42.849810669147935, lng: -70.98818573987138 }];
+const quinsigamond = { lat: 42.276268, lng: -71.756629 };
+const startPathCoords = { lat: 42.276268, lng: -71.7576294 };
+const gridCorners = {topleft: { lat: 42.278568, lng: -71.757519 }, botleft: { lat: 42.278568, lng: -71.755000 }, botright: { lat: 42.274568, lng: -71.755000 }, topright: { lat: 42.278568, lng: -71.755119 }};
 
 const boatSVG = {
     anchor: new google.maps.Point(200, 0),
@@ -95,10 +97,10 @@ const toggleDebug = () => {
 
 
 const initMap = () => {
-    // The map, centered at attitash
+    // The map, centered at quinsigamond
     map = new google.maps.Map(document.getElementById('mapCanvas'), {
-        zoom: 16,
-        center: attitash,
+        zoom: 17,
+        center: quinsigamond,
         mapTypeId: 'terrain',
         // mapTypeId: 'satellite',
         // tilt: 60,
@@ -144,23 +146,23 @@ const initMap = () => {
 
     // waypoint
     new google.maps.Marker({
-        position: { lat: 42.84780, lng: -70.9849 },
+        position: { lat: 42.276268, lng: -71.755619 },
+        icon: waypoint,
+        map,
+        title: 'first',
+    });
+
+    new google.maps.Marker({
+        position: { lat: 42.276568, lng: -71.756619 },
         icon: waypoint,
         map,
         title: 'second',
     });
 
     new google.maps.Marker({
-        position: { lat: 42.84780, lng: -70.9809 },
+        position: { lat: 42.275858, lng: -71.756629 },
         icon: waypoint,
         map,
-        title: 'second',
-    });
-
-    new google.maps.Marker({
-        position: { lat: 42.8499, lng: -70.9829 },
-        icon: waypoint,
-        map,
-        title: 'second',
+        title: 'third',
     });
 };
