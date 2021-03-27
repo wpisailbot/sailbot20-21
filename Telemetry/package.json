@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "csv-write-stream": "^2.0.0",
     "csv-writer": "^1.6.0",
     "d3-simple-slider": "^1.10.2",
     "express": "^4.17.1",
