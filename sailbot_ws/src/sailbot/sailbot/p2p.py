@@ -6,13 +6,12 @@ class P2P:
 		self.curpos = curpos #coordinates of starting point
 		self.dest = dest #coordinates of end point 
 		self.state = 1
-		self.tempheadWP = 45 #windward + port
-		self.tempheadWS = 315 #windward + starboard
+		
 		
 	
 
 	def getAction(self, ):
-		self.state1()
+		self.state2()
 		
 	def state1(self):
         #########
@@ -20,7 +19,14 @@ class P2P:
 		#########
 		self.setTT(wind,cmpas)
 	
+	def state2(self):
+	    
+	    
+	    print("hi")
+	    
 	def setTT(self, wind, cmpas):
+		tempheadP = 45 #port
+		tempheadS = 315 #starboard
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
 		if boatAng < 0:
@@ -31,55 +37,55 @@ class P2P:
 		if pointofsail < 0:
 			pointofsail += 360
 		if pointofsail >= 0 and pointofsail < 45:
-			heading = windAng + self.tempheadWP
+			heading = windAng + tempheadP
 			if heading >= 360:
 				heading -= 360
 			x = {"tack":"port","trimtab":"lift"}
 			#json.dumps({"tack":"port","trimtab":"lift"})
-			#self.state2(heading,pointofsail)
+			self.state == 2
 		elif pointofsail >= 45 and pointofsail <= 135:
 			heading = boatAng
 			x = {"tack":"port","trimtab":"lift"}
 			#json.dumps({"tack":"port","trimtab":"lift"})
-			#self.state3(heading,pointofsail)
+			self.state == 3
 		elif pointofsail > 135 and pointofsail < 180:
 			heading = boatAng
 			x = {"tack":"port","trimtab":"drag"}
 			#json.dumps({"tack":"port","trimtab":"drag"})
-			#self.state3(heading,pointofsail)
+			self.state == 3
 		elif pointofsail >= 180 and pointofsail < 225:
 			heading = boatAng
 			x = {"tack":"starboard","trimtab":"drag"}
 			#json.dumps({"tack":"starboard","trimtab":"drag"})
-			#self.state2(heading,pointofsail)
+			self.state == 3
 		elif pointofsail >= 225 and pointofsail <= 315:
 			heading = boatAng
 			x = {"tack":"starboard","trimtab":"lift"}
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
-			#self.state3(heading,pointofsail)
+			self.state == 3
 		elif pointofsail >= 315 and pointofsail < 360:
-			heading = windAng + self.tempheadWS
+			heading = windAng + tempheadS
 			if heading >= 360:
 				heading -= 360
 			x = {"tack":"starboard","trimtab":"lift"}
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
-			#self.state2(heading,pointofsail)
+			self.state == 2
 		print(x)
 		return(x)
 	
-	def state2(self,heading,pointofsail,windAng):
+	def state3(self,heading,pointofsail,windAng):
 	    # get and keep the boat on course #
 		variance = heading - self.track
-		if variance == 0: # heading=track
-		    self.evenout()
-		elif variance < 0 and pointofsail < 180: #heading<track & pTack
+		if variance < 4 and vaiance > -4 : # heading=track
+		    rudders = {"channel" : "8", "angle" : "70"}
+		elif variance < -4 and pointofsail < 180: #heading<track & pTack
+			rudders = {"channel" : "8", "angle" : "90"}
+		elif variance < -4 and pointofsail >= 180: #heading<track & sTack
 			rudders = {"channel" : "8", "angle" : "50"}
-		elif variance < 0 and pointofsail >= 180: #heading<track & sTack
-			self.falloff(pointofsail)
-		elif variance > 0 and pointofsail < 180: #heading>track & pTack
-			self.falloff(pointofsail)
-		elif variance > 0 and pointofsail >= 180: #heading>track & sTack
-			self.headup(pointofsail)
+		elif variance > 4 and pointofsail < 180: #heading>track & pTack
+			rudders = {"channel" : "8", "angle" : "50"}
+		elif variance > 4 and pointofsail >= 180: #heading>track & sTack
+			rudders = {"channel" : "8", "angle" : "90"}
 		
 		newBoatAng = self.getHeading()
 		
@@ -129,6 +135,5 @@ class P2P:
 		return self.dest[0]-self.curpos[0]
 		
 
-x = P2P(315,45,0,(0,0),(1,1))
+x = P2P((0,0),(1,1))
 x.getAction()
-
