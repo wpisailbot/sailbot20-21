@@ -122,14 +122,14 @@ class ControlSystem(Node):
         if(smoothAngle > 0 and smoothAngle <= 180):#starboard tack
             #go for 20 degrees
             if(float(self.airmar_data["roll"]) > -20):
-                ballastAngle = 80
-            elif(float(self.airmar_data["roll"]) < -24):
                 ballastAngle = 110
+            elif(float(self.airmar_data["roll"]) < -24):
+                ballastAngle = 80
         elif(smoothAngle > 180 and smoothAngle < 360):#port tack
             if (float(self.airmar_data["roll"]) < 20):
-                ballastAngle = 110
-            elif (float(self.airmar_data["roll"]) > 24):
                 ballastAngle = 80
+            elif (float(self.airmar_data["roll"]) > 24):
+                ballastAngle = 110
 
         ballastJson = {"channel": "12", "angle": ballastAngle}
         self.pwm_control_publisher_.publish(self.makeJsonString(ballastJson))
