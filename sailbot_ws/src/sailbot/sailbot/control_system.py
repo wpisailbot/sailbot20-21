@@ -112,6 +112,26 @@ class ControlSystem(Node):
         s = sorted(lst)
         return (sum(s[n//2-1:n//2+1])/2.0, s[n//2])[n % 2] if n else None
 
+    def ballastAlgorithm(self):
+        #check wind angle, then check current tilt of boat, then adjust ballast accordingly
+        smoothAngle = self.median(self.lastWinds)
+        ballastAngle = 0
+        print("roll:" + self.airmar_data["roll"]);
+        if(smoothAngle > 0 and smoothAngle <= 180):#starboard tack
+            #go for 20 degrees
+            if(self.airmar_data["roll"] > -20):
+                ballastAngle = 80
+            elif(self.airmar_data["roll"] < -24):
+                ballastAngle = 110
+        elif(smoothAngle > 180 and smoothAngle < 360):#port tack
+            if (self.airmar_data["roll"] < 20):
+                ballastAngle = 110
+            elif (self.airmar_data["roll"] > 24):
+                ballastAngle = 80
+
+        ballastJson = {"channel": "12", "angle": ballastAngle}
+        self.pwm_control_publisher_.publish(self.makeJsonString(ballastJson))
+
            
 def main(args=None):
     rclpy.init(args=args)
@@ -144,6 +164,7 @@ def main(args=None):
             elif("wind-angle-relative" in control_system.airmar_data ):
 		#print(control_system.airmar_data["wind-angle-relative"])
                 control_system.findTrimTabState(control_system.airmar_data["wind-angle-relative"])
+                control_system.ballastAlgorithm()
             else:
                 print("No wind angle values")
             rudderAngle = (float(control_system.serial_rc["rudder"]) / 2000 * 90) + 25
