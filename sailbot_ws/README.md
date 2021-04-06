@@ -47,11 +47,17 @@ Node Subscriptions and Publishing:
 From a high level, the nodes are set up with the following intended functionallity: The `control_system` node takes in information from sensors and RC (`airmar_reader`, `serial_rc_receiver`) to form decisions, which are executed by other nodes (`pwm_controller`, `teensy_comms`). The `debug_interface` takes in all information from across all nodes, and relays it to a webserver which shows the information on a dashboard, as well as logs it for later use.
 
 On a per node basis, each node does the following:
+
 The Airmar reader handes the interpretation of all airmar information. The airmar communicates to the Maretron, which the jetson connects to over usb. The Maretron shows NEMA2000 messages which must be decoded into readable format. These messages are then published
+
 The PWM controller handles control of both the rudders and of the ballast. The node takes messages with a channel and angle. At time of writing, the rudder is wired to channel 8, and the ballast to channel 12. The rudders move with a servo, so only an angle is needed. The ballast uses a motor controller, so the value will control speed.
+
 The serial rc receiver node connects to the FR Sky remote control, and publishes the values from 6 channels corresponding to differnet parts of the controller. 
+
 The control system takes in values and makes decisions on how to set he rudders, ballast, and trim tab based on the mode it is opperating in, and the values passed it. For example, toggling the state 2 switch tothe middle position on the radio controller will enter a mode where trim tab control is automated.
+
 The teensy comms node connects to the trim tab board, which was the teensy now is the MKR1010, over a open websocket and sends commands to move the trim tab as either states or manual angles. The node also recives relative wind angles back from the trim tab
+
 The debug interface runs with the telemetry in order to gather data and show the current status of the boat.
 
 
