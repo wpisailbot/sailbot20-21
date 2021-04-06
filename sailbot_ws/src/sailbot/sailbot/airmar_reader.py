@@ -13,8 +13,8 @@ class AirmarReader(Node):
         super().__init__('airmar_reader')
         self.ser = serial.Serial('/dev/serial/by-id/usb-Maretron_USB100__NMEA_2000_USB_Gateway__1170079-if00')
         self.publisher_ = self.create_publisher(String, 'airmar_data', 10)
-        timer_period = 0.01  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        #timer_period = 0.01  # seconds
+        #self.timer = self.create_timer(timer_period, self.timer_callback)
 
 
     def timer_callback(self):
@@ -109,8 +109,10 @@ def main(args=None):
     rclpy.init(args=args)
 
     airmar_reader = AirmarReader()
-
-    rclpy.spin(airmar_reader)
+    while( rclpy.ok() ):
+        rclpy.spin_once(control_system, timeout_sec=.5)
+        airmar_reader.timer_callback()
+    #rclpy.spin(airmar_reader)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
