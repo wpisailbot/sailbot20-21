@@ -54,7 +54,7 @@ The PWM controller handles control of both the rudders and of the ballast. The n
 
 The serial rc receiver node connects to the FR Sky remote control, and publishes the values from 6 channels corresponding to differnet parts of the controller. 
 
-The control system takes in values and makes decisions on how to set he rudders, ballast, and trim tab based on the mode it is opperating in, and the values passed it. For example, toggling the state 2 switch tothe middle position on the radio controller will enter a mode where trim tab control is automated.
+The control system takes in values and makes decisions on how to set he rudders, ballast, and trim tab based on the mode it is opperating in, and the values passed it. For example, toggling the state 1 switch to the middle position on the radio controller will enter a mode where trim tab control is automated. 
 
 The teensy comms node connects to the trim tab board, which was the teensy now is the MKR1010, over a open websocket and sends commands to move the trim tab as either states or manual angles. The node also recives relative wind angles back from the trim tab
 
