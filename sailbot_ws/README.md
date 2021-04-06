@@ -7,6 +7,54 @@
 
 
 # Overview of the ROS Architecture
+
+## Node and Topic Structure
+The ROS workspace uses the following nodes and topics:
+
+Nodes:
+- airmar_reader
+- pwm_controller
+- serial_rc_receiver
+- control_system
+- teensy_comms
+- debug_interface
+
+Topics:
+- serial_rc
+- pwm_control
+- airmar_data
+- teensy_control
+- teensy_status
+
+Node Subscriptions and Publishing:
+- airmar_reader
+  - publishes to `airmar_data`
+- pwm_controller
+  - subscribes to `pwm_control`
+- serial_rc_receiver
+  - publishes to `serial_rc`
+- control_system
+  - subscribes to `airmar_data`, `serial_rc`, `teensy_status`
+- teensy_comms
+  - publishes to `teensy_status`
+  - subscribes to `teensy_control`
+- debug_interface
+  - subscribes to `serial_rc`, `pwm_control`, `airmar_data`, `teensy_control`, `teensy_status`
+
+## ROS Architecture Summary
+
+From a high level, the nodes are set up with the following intended functionallity: The `control_system` node takes in information from sensors and RC (`airmar_reader`, `serial_rc_receiver`) to form decisions, which are executed by other nodes (`pwm_controller`, `teensy_comms`). The `debug_interface` takes in all information from across all nodes, and relays it to a webserver which shows the information on a dashboard, as well as logs it for later use.
+
+On a per node basis, each node does the following:
+The Airmar reader handes the interpretation of all airmar information. The airmar communicates to the Maretron, which the jetson connects to over usb. The Maretron shows NEMA2000 messages which must be decoded into readable format. These messages are then published
+The PWM controller handles control of both the rudders and of the ballast. The node takes messages with a channel and angle. At time of writing, the rudder is wired to channel 8, and the ballast to channel 12. The rudders move with a servo, so only an angle is needed. The ballast uses a motor controller, so the value will control speed.
+The serial rc receiver node connects to the FR Sky remote control, and publishes the values from 6 channels corresponding to differnet parts of the controller. 
+The control system takes in values and makes decisions on how to set he rudders, ballast, and trim tab based on the mode it is opperating in, and the values passed it. For example, toggling the state 2 switch tothe middle position on the radio controller will enter a mode where trim tab control is automated.
+The teensy comms node connects to the trim tab board, which was the teensy now is the MKR1010, over a open websocket and sends commands to move the trim tab as either states or manual angles. The node also recives relative wind angles back from the trim tab
+The debug interface runs with the telemetry in order to gather data and show the current status of the boat.
+
+
+## ROS general notes
 All the code is in sailbot20-21/sailbot_ws/src/sailbot/sailbot
 The path has to be this long unfortunately since we need our git repo, then our ros workspace, then our ros package, then our python package
 
@@ -101,7 +149,7 @@ ros2 launch sailbot full_debug.py
 
 # Additional Notes
 
-Rememeber to rebuild and resource every time you change the code! (otehrwise you will run the old code)
+Rememeber to rebuild and resource every time you change the code! (otherwise you will run the old code)
 
 
 
