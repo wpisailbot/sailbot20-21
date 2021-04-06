@@ -51,14 +51,6 @@ class TeensyComms(Node):
             10)
         self.subscription  # prevent unused variable warning
 
-    def bind_socket(self):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-        self.s.bind((OWN_IP,TRIM_PORT))
-        print("bound")
-        self.s.listen(1)
-        self.conn, self.addr = self.s.accept()
-	
     def timer_callback(self):
         data = self.conn.recv(1024)
         if data:
@@ -70,11 +62,7 @@ class TeensyComms(Node):
 
     def listener_callback(self, msg):
         self.get_logger().info('Sending to teensy: "%s"' % msg.data)
-        try:
-            self.conn.sendall(msg.data.encode())
-        except Exception as e:
-            self.get_logger().error(str(e))
-            self.bind_socket()
+        self.conn.sendall(msg.data.encode())
 
 def main(args=None):
     rclpy.init(args=args)
