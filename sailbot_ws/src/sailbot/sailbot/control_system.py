@@ -121,14 +121,14 @@ class ControlSystem(Node):
         print("roll:" + self.airmar_data["roll"]);
         if(smoothAngle > 0 and smoothAngle <= 180):#starboard tack
             #go for 20 degrees
-            if(self.airmar_data["roll"] > -20):
+            if(float(self.airmar_data["roll"]) > -20):
                 ballastAngle = 80
-            elif(self.airmar_data["roll"] < -24):
+            elif(float(self.airmar_data["roll"]) < -24):
                 ballastAngle = 110
         elif(smoothAngle > 180 and smoothAngle < 360):#port tack
-            if (self.airmar_data["roll"] < 20):
+            if (float(self.airmar_data["roll"]) < 20):
                 ballastAngle = 110
-            elif (self.airmar_data["roll"] > 24):
+            elif (float(self.airmar_data["roll"]) > 24):
                 ballastAngle = 80
 
         ballastJson = {"channel": "12", "angle": ballastAngle}
