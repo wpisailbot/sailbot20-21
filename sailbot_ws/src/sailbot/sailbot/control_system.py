@@ -114,6 +114,8 @@ class ControlSystem(Node):
 
     def ballastAlgorithm(self):
         #check wind angle, then check current tilt of boat, then adjust ballast accordingly
+        if(len(self.lastWinds) == 0):
+            return
         smoothAngle = self.median(self.lastWinds)
         ballastAngle = 0
         print("roll:" + self.airmar_data["roll"]);
