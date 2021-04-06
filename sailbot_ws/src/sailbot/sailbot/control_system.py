@@ -143,7 +143,10 @@ def main(args=None):
                 control_system.teensy_control_publisher_.publish(toPub)
             elif("wind-angle-relative" in control_system.airmar_data ):
 		#print(control_system.airmar_data["wind-angle-relative"])
-                control_system.findTrimTabState(control_system.airmar_data["wind-angle-relative"])
+                try:
+                    control_system.findTrimTabState(control_system.airmar_data["wind-angle-relative"])
+                except Exception as e:
+                    self.get_logger().error(str(e))
             else:
                 print("No wind angle values")
             rudderAngle = (float(control_system.serial_rc["rudder"]) / 2000 * 90) + 25

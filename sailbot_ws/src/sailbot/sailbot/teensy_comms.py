@@ -3,6 +3,7 @@ from rclpy.node import Node
 import socket
 import json
 from enum import Enum
+from datetime import datetime
 
 #for now, publish simple string
 from std_msgs.msg import String
@@ -35,8 +36,10 @@ class TeensyComms(Node):
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         self.s.bind((OWN_IP,TRIM_PORT))
         print("bound")
-        self.s.listen(1)
+        self.s.listen(128)
         self.conn, self.addr = self.s.accept()
+
+        self.client_list = []
 
         #create publisher to teensy status topic
         self.teensy_status_publisher_ = self.create_publisher(String, 'teensy_status', 10)
@@ -50,13 +53,14 @@ class TeensyComms(Node):
             self.listener_callback,
             10)
         self.subscription  # prevent unused variable warning
+        self.timestamp = 0 #check before sending to teensy
 
     def bind_socket(self):
-	self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-        self.s.bind((OWN_IP,TRIM_PORT))
-        print("bound")
-        self.s.listen(1)
+        #self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+        #self.s.bind((OWN_IP,TRIM_PORT))
+        #print("bound")
+        #self.s.listen(1)
         self.conn, self.addr = self.s.accept()
 	
     def timer_callback(self):
@@ -70,8 +74,17 @@ class TeensyComms(Node):
 
     def listener_callback(self, msg):
         self.get_logger().info('Sending to teensy: "%s"' % msg.data)
+        if(datetime.now().timestamp() > self.timestamp):
+            self.timestamp = datetime.now().timestamp() + 0.5 #half a second
+        else:
+            return
         try:
-            self.conn.sendall(msg.data.encode())
+            client_socket, addr = self.s.accept()
+            self.client_list.append(client_socket)
+            #self.s.close()
+            #self.bind_socket()
+            for client in self.client_list:
+                client.sendall(msg.data.encode())
         except Exception as e:
             self.get_logger().error(str(e))
             self.bind_socket()
