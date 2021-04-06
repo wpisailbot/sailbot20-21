@@ -110,7 +110,7 @@ def main(args=None):
 
     airmar_reader = AirmarReader()
     while( rclpy.ok() ):
-        rclpy.spin_once(airmar_reader, timeout_sec=.5)
+        rclpy.spin_once(airmar_reader, timeout_sec=.001)
         airmar_reader.timer_callback()
     #rclpy.spin(airmar_reader)
 
