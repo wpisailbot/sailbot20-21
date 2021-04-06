@@ -125,7 +125,7 @@ const socketInit = () => {
     	// document.querySelector('#humidityVal').innerHTML = (data.groundspeed ? data.groundspeed : 0) + '%';
 
 	/********** GPS **********/
-        boatPath.getPath().push(new google.maps.LatLng(data.latitude ? data.latitude : 0, data.longitude ? data.longitude : 0));
+        boatPath.getPath().push(new google.maps.LatLng(data['Latitude'] ? data['Latitude'] : 0, data.['Longitude'] ? data['Longitude'] : 0));
 
 	});
     

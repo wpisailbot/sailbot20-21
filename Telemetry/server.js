@@ -1,12 +1,8 @@
 const fs = require('fs');
 const http = require('http');
-// const csv = require('fast-csv');
 const express = require('express');
 const socketIO = require('socket.io');
 const bodyParser = require('body-parser');
-// const createCsvWriter = require('csv-writer').createObjectCsvWriter
-const csvWriter = require('csv-write-stream');
-
 
 const app = express();
 const server = http.createServer(app);
@@ -23,39 +19,34 @@ app.use(express.static('public'));
 
 
 let countData = true;
-let dataTimeDiff = 100;
+let dataTimeDiff = 200;
 let writing = false;
 
 
 app.post('/boat', (req, res) => {
 
 	let data = req.body;
+	if (data.hasOwnProperty('magnetic-sensor-heading') || data.hasOwnProperty('track-degrees-true') || data.hasOwnProperty('Latitude-direction')){
+		writing = !writing;
+		io.to('clients').emit('updateAirmarDash', req.body);
+		addToDB(data, 'airmarOut.csv', airmarHeaders);
+	} 
+
 	if (countData && !writing) {
 		countData = false;
 		console.log('reading data:', data);
-		if (data.hasOwnProperty('magnetic-sensor-heading') || data.hasOwnProperty('track-degrees-true')){
-			writing = !writing;
-			io.to('clients').emit('updateAirmarDash', req.body);
-			// let airmarCsv = fs.createWriteStream('airmarOut.csv', { flags: 'a' });
-			// addToDB(data, airmarCsv, airmarHeaders);
-			addToDB(data, 'airmarOut.csv', airmarHeaders);
-		} else if (data.hasOwnProperty('state')) {
-			writing = !writing;
-			io.to('clients').emit('updateTrimDash', req.body);
-			// let trimtabCsv = fs.createWriteStream('trimtabOut.csv', { flags: 'a' });
-			// addToDB(data, trimtabCsv, trimtabHeaders);
-			addToDB(data, 'trimtabOut.csv', trimtabHeaders);
-		} else if (data.hasOwnProperty('state1')) {
+		//else if (data.hasOwnProperty('state')) {
+			// writing = !writing;
+			// io.to('clients').emit('updateTrimDash', req.body);
+			// addToDB(data, 'trimtabOut.csv', trimtabHeaders);
+		//} else 
+		if (data.hasOwnProperty('state1')) {
 			writing = !writing;
 			io.to('clients').emit('updateSerialControls', req.body);
-			// rcCsv = fs.createWriteStream('rcInput.csv', { flags: 'a' });
-			// addToDB(data, rcCsv, rcHeaders);
 			addToDB(data, 'rcInput.csv', rcHeaders);
 		}
 
 		setTimeout(() => countData = true, dataTimeDiff);
-	} else {
-		console.log('trashed - ', 'count:', countData, 'wrting:', writing);
 	}
 	res.send(200);
 });
