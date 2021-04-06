@@ -112,6 +112,28 @@ class ControlSystem(Node):
         s = sorted(lst)
         return (sum(s[n//2-1:n//2+1])/2.0, s[n//2])[n % 2] if n else None
 
+    def ballastAlgorithm(self):
+        #check wind angle, then check current tilt of boat, then adjust ballast accordingly
+        if(len(self.lastWinds) == 0):
+            return
+        smoothAngle = self.median(self.lastWinds)
+        ballastAngle = 0
+        print("roll:" + self.airmar_data["roll"]);
+        if(smoothAngle > 0 and smoothAngle <= 180):#starboard tack
+            #go for 20 degrees
+            if(float(self.airmar_data["roll"]) > -20):
+                ballastAngle = 110
+            elif(float(self.airmar_data["roll"]) < -24):
+                ballastAngle = 80
+        elif(smoothAngle > 180 and smoothAngle < 360):#port tack
+            if (float(self.airmar_data["roll"]) < 20):
+                ballastAngle = 80
+            elif (float(self.airmar_data["roll"]) > 24):
+                ballastAngle = 110
+
+        ballastJson = {"channel": "12", "angle": ballastAngle}
+        self.pwm_control_publisher_.publish(self.makeJsonString(ballastJson))
+
            
 def main(args=None):
     rclpy.init(args=args)
@@ -149,16 +171,19 @@ def main(args=None):
                     self.get_logger().error(str(e))
             else:
                 print("No wind angle values")
+            if(float(control_system.serial_rc["state1"]) < 800):
+                ballastAngle = 0
+                if (control_system.serial_rc["ballast"] > 1200):
+                    ballastAngle = 110
+                elif (control_system.serial_rc["ballast"] < 800):
+                    ballastAngle = 80
+                ballastJson = {"channel" : "12", "angle" : ballastAngle}
+                control_system.pwm_control_publisher_.publish(control_system.makeJsonString(ballastJson))
+            else:
+                control_system.ballastAlgorithm()
             rudderAngle = (float(control_system.serial_rc["rudder"]) / 2000 * 90) + 25
-            rudderJson = {"channel" : "8", "angle" : rudderAngle}
+            rudderJson = {"channel": "8", "angle": rudderAngle}
             control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
-            ballastAngle = 0
-            if(control_system.serial_rc["ballast"] > 1200):
-                ballastAngle = 110
-            elif(control_system.serial_rc["ballast"] < 800):
-                ballastAngle = 80
-            ballastJson = {"channel" : "12", "angle" : ballastAngle}
-            control_system.pwm_control_publisher_.publish(control_system.makeJsonString(ballastJson))
         
 
 
