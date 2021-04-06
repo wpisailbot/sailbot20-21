@@ -69,33 +69,33 @@ class ControlSystem(Node):
 
     def findTrimTabState(self, relativeWind):
         #check we have new wind
-        if(len(self.lastWinds) != 0 and relativeWind == self.lastWinds[len(self.lastWinds) -1]):
+        if(relativeWind == self.lastWinds[len(self.lastWinds) -1]):
             return       
         #first add wind to running list
-        self.lastWinds.append(float(relativeWind))
+        self.lastWinds.append(relativeWind)
         if(len(self.lastWinds) > 10):
-            self.lastWinds.pop(0)
+            lastWinds.pop(0)
         #now find best trim tab state
         smoothAngle = self.median(self.lastWinds)
         if(smoothAngle >= 45.0 and smoothAngle < 90):
             #max lift starboard
-            toPub = self.makeJsonString({"state":"1"})
+            toPub = makeJsonString({"state":"1"})
             self.teensy_control_publisher_.publish(toPub)
         elif(smoothAngle >= 90 and smoothAngle < 180):
             #max drag starboard
-            toPub = self.makeJsonString({"state":"3"})
+            toPub = makeJsonString({"state":"3"})
             self.teensy_control_publisher_.publish(toPub)
         elif(smoothAngle >= 180 and smoothAngle < 270):
             #max drag port
-            toPub = self.makeJsonString({"state":"2"})
+            toPub = makeJsonString({"state":"2"})
             self.teensy_control_publisher_.publish(toPub)
         elif(smoothAngle >= 270 and smoothAngle < 315):
             #max lift port
-            toPub = self.makeJsonString({"state":"0"})
+            toPub = makeJsonString({"state":"0"})
             self.teensy_control_publisher_.publish(toPub)
         else:
             #in irons, min lift
-            toPub = self.makeJsonString({"state":"4"})
+            toPub = makeJsonString({"state":"4"})
             self.teensy_control_publisher_.publish(toPub)
         
 
@@ -111,28 +111,6 @@ class ControlSystem(Node):
         n = len(lst)
         s = sorted(lst)
         return (sum(s[n//2-1:n//2+1])/2.0, s[n//2])[n % 2] if n else None
-
-    def ballastAlgorithm(self):
-        #check wind angle, then check current tilt of boat, then adjust ballast accordingly
-        if(len(self.lastWinds) == 0):
-            return
-        smoothAngle = self.median(self.lastWinds)
-        ballastAngle = 0
-        print("roll:" + self.airmar_data["roll"]);
-        if(smoothAngle > 0 and smoothAngle <= 180):#starboard tack
-            #go for 20 degrees
-            if(float(self.airmar_data["roll"]) > -20):
-                ballastAngle = 110
-            elif(float(self.airmar_data["roll"]) < -24):
-                ballastAngle = 80
-        elif(smoothAngle > 180 and smoothAngle < 360):#port tack
-            if (float(self.airmar_data["roll"]) < 20):
-                ballastAngle = 80
-            elif (float(self.airmar_data["roll"]) > 24):
-                ballastAngle = 110
-
-        ballastJson = {"channel": "12", "angle": ballastAngle}
-        self.pwm_control_publisher_.publish(self.makeJsonString(ballastJson))
 
            
 def main(args=None):
@@ -160,7 +138,7 @@ def main(args=None):
         elif(inRC):
             if(float(control_system.serial_rc["state1"]) < 400):
                 #manual
-                manualAngle = int((float(control_system.serial_rc["manual"]) / 2000) * 100) + 65
+                manualAngle = int((float(control_system.serial_rc["manual"]) / 2000) * 86) + 72
                 toPub = control_system.makeJsonString({"state":"5","angle":manualAngle})
                 control_system.teensy_control_publisher_.publish(toPub)
             elif("wind-angle-relative" in control_system.airmar_data ):
@@ -168,19 +146,16 @@ def main(args=None):
                 control_system.findTrimTabState(control_system.airmar_data["wind-angle-relative"])
             else:
                 print("No wind angle values")
-            if(float(control_system.serial_rc["state1"]) < 800):
-                ballastAngle = 0
-                if (control_system.serial_rc["ballast"] > 1200):
-                    ballastAngle = 110
-                elif (control_system.serial_rc["ballast"] < 800):
-                    ballastAngle = 80
-                ballastJson = {"channel" : "12", "angle" : ballastAngle}
-                control_system.pwm_control_publisher_.publish(control_system.makeJsonString(ballastJson))
-            else:
-                control_system.ballastAlgorithm()
             rudderAngle = (float(control_system.serial_rc["rudder"]) / 2000 * 90) + 25
-            rudderJson = {"channel": "8", "angle": rudderAngle}
+            rudderJson = {"channel" : "8", "angle" : rudderAngle}
             control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
+            ballastAngle = 0
+            if(control_system.serial_rc["ballast"] > 1200):
+                ballastAngle = 110
+            elif(control_system.serial_rc["ballast"] < 800):
+                ballastAngle = 80
+            ballastJson = {"channel" : "12", "angle" : ballastAngle}
+            control_system.pwm_control_publisher_.publish(control_system.makeJsonString(ballastJson))
         
 
 
