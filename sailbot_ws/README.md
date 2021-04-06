@@ -35,6 +35,7 @@ Node Subscriptions and Publishing:
   - publishes to `serial_rc`
 - control_system
   - subscribes to `airmar_data`, `serial_rc`, `teensy_status`
+  - publishes to `pwm_control`, `teensy_control`
 - teensy_comms
   - publishes to `teensy_status`
   - subscribes to `teensy_control`
