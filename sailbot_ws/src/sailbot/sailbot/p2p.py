@@ -13,61 +13,23 @@ class P2P:
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
 		if boatAng < 0:
-            boatAng += 360
+			boatAng += 360
 		pointofsail = boatAng - windAng #angle between wind and direction to get to destination
-		if self.state == 1:
-            self.state1()
-        elif self.state == 2:
-            self.state2()
-        elif self.state == 3:
-            self.state3()
-		
-	def state1(self):
-        #########
-		#state 1#
-		#########
-		self.setTT(wind,cmpas)
-	
-	def state2(self, boatAng, windAng, track):
-		tempheading = windAng + self.temphead
-		if tempheading >= 360:
-			while tempheading >= 360:
-                tempheading -= 360
-		# get and keep the boat on course #
-		variance = tempheading - track
-		if variance < 4 and vaiance > -4 : # heading=track
-            rudders = {"channel" : "8", "angle" : "70"}
-        elif variance < -4 and pointofsail < 180: #heading<track & pTack
-            rudders = {"channel" : "8", "angle" : "90"}
-        elif variance < -4 and pointofsail >= 180: #heading<track & sTack
-            rudders = {"channel" : "8", "angle" : "50"}
-        elif variance > 4 and pointofsail < 180: #heading>track & pTack
-            rudders = {"channel" : "8", "angle" : "50"}
-        elif variance > 4 and pointofsail >= 180: #heading>track & sTack
-            rudders = {"channel" : "8", "angle" : "90"}
-        if self.temphead == 45:
-			if (boatAng < 315) and (boatAng > 180):
-                self.state = 1
-        elif self.temphead == 315:
-            if (boatAng > 45) and (boatAng < 180):
-                self.state = 1
-        print("hi")
-
-	def setTT(self, pointofsail):
-		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
-		boatAng = self.getHeading() #direction relative to north to get from current position to end position
-		if boatAng < 0:
-            boatAng += 360
-		pointofsail = boatAng - windAng #angle between wind and direction to get to destination
-		print(windAng)
-		heading = 0 #desired direction of travel taking wind into account, relative to north
 		if pointofsail < 0:
 			pointofsail += 360
+		if self.state == 1:
+			self.state1(pointofsail, windAng, boatAng)
+		elif self.state == 2:
+			self.state2()
+		elif self.state == 3:
+			self.state3()
+		
+	def state1(self, pointofsail, windAng, boatAng):
+		#########
+		#state 1#
+		#########
 		if pointofsail >= 0 and pointofsail < 45:
-            self.temphead = 45
-			heading = windAng + self.temphead
-			if heading >= 360:
-				heading -= 360
+			self.temphead = 45
 			x = {"tack":"port","trimtab":"lift"}
 			#json.dumps({"tack":"port","trimtab":"lift"})
 			self.state == 2
@@ -92,18 +54,40 @@ class P2P:
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 3
 		elif pointofsail >= 315 and pointofsail < 360:
-            self.temphead = 315
-			heading = windAng + self.temphead
-			if heading >= 360:
-				heading -= 360
+			self.temphead = 315
 			x = {"tack":"starboard","trimtab":"lift"}
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 2
 		print(x)
 		return(x)
 	
+	def state2(self, boatAng, windAng, track):
+		tempheading = windAng + self.temphead
+		if tempheading >= 360:
+			while tempheading >= 360:
+				tempheading -= 360
+		# get and keep the boat on course #
+		variance = tempheading - track
+		if variance < 4 and vaiance > -4 : # heading=track
+			rudders = {"channel" : "8", "angle" : "70"}
+		elif variance < -4 and pointofsail < 180: #heading<track & pTack
+			rudders = {"channel" : "8", "angle" : "90"}
+		elif variance < -4 and pointofsail >= 180: #heading<track & sTack
+			rudders = {"channel" : "8", "angle" : "50"}
+		elif variance > 4 and pointofsail < 180: #heading>track & pTack
+			rudders = {"channel" : "8", "angle" : "50"}
+		elif variance > 4 and pointofsail >= 180: #heading>track & sTack
+			rudders = {"channel" : "8", "angle" : "90"}
+		if self.temphead == 45:
+			if (boatAng < 315) and (boatAng > 180):
+				self.state = 1
+		elif self.temphead == 315:
+			if (boatAng > 45) and (boatAng < 180):
+				self.state = 1
+		print("hi")
+
 	def state3(self,heading,pointofsail,windAng):
-        
+		
 	
 	def getHeading(self):
 		X = math.cos(math.radians(self.dest[0]))*math.sin(math.radians(self.difLon()))
