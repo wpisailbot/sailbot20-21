@@ -67,29 +67,37 @@ class P2P:
 		#state 2#
 		#########
 		print("current state: 2")
+		rudders = {"channel" : "8", "angle" : "70"}
 		tempheading = windAng + self.temphead
 		if tempheading >= 360:
 			while tempheading >= 360:
 				tempheading -= 360
 		# get and keep the boat on course #
 		variance = tempheading - track
-		if variance < 4 and vaiance > -4 : # heading=track
+		if variance < -180:
+			variance += 360  #ensures that if tempheading = 359 and track = 1
+		elif variance > 180: #the boat wont try to turn the long way around
+			variance -= 360
+		if variance > 4:
+			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards port (change + to - if turning wrong way)
+		elif variance < -4:
+			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards starbord (change + to - if turning wrong way)
+		else:
 			rudders = {"channel" : "8", "angle" : "70"}
-		elif variance < -4 and pointofsail < 180: #heading<track & pTack
-			rudders = {"channel" : "8", "angle" : "90"}
-		elif variance < -4 and pointofsail >= 180: #heading<track & sTack
-			rudders = {"channel" : "8", "angle" : "50"}
-		elif variance > 4 and pointofsail < 180: #heading>track & pTack
-			rudders = {"channel" : "8", "angle" : "50"}
-		elif variance > 4 and pointofsail >= 180: #heading>track & sTack
-			rudders = {"channel" : "8", "angle" : "90"}
+		
 		if self.temphead == 45:
 			if (boatAng < 315) and (boatAng > 180):
 				self.state = 1
+			else:
+				self.state = 2
 		elif self.temphead == 315:
 			if (boatAng > 45) and (boatAng < 180):
 				self.state = 1
-		print("hi")
+			else:
+				self.state = 2
+		else:
+			print("wtf happened? self.temphead should only be 45 or 315!")
+		
 
 	def state3(self, track, windAng, boatAng):
 		#########
@@ -103,7 +111,7 @@ class P2P:
 		Y = math.cos(math.radians(self.curpos[0]))*math.sin(math.radians(self.dest[0]))-math.sin(math.radians(self.curpos[0]))*math.cos(math.radians(self.dest[0]))*math.cos(math.radians(self.difLon()))
 		angle = math.degrees(math.atan2(X,Y))
 		if angle < 0:
-            angle += 360
+			angle += 360
 		print(X,Y,angle)
 		return(angle)
 
