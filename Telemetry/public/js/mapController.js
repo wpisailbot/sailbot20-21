@@ -1,10 +1,13 @@
-let map, boatPath, latLines = [], lngLines = [], gridCenters = [], gridCenterPoints = [], debug = false;
+let map, boatPath, latLines = [], lngLines = [], gridCenters = [], gridCenterPoints = [], debug = false, mapcenter = {}, gridCorners = {};
 
-// const attitash = { lat: 42.8489, lng: -70.9829 };
-// const startPathCoords = [{ lat: 42.849810669147935, lng: -70.98818573987138 }];
-const quinsigamond = { lat: 42.276268, lng: -71.756629 };
-const startPathCoords = { lat: 42.276268, lng: -71.7576294 };
-const gridCorners = {topleft: { lat: 42.278568, lng: -71.757519 }, botleft: { lat: 42.278568, lng: -71.755000 }, botright: { lat: 42.274568, lng: -71.755000 }, topright: { lat: 42.278568, lng: -71.755119 }};
+const attitash = { lat: 42.8489, lng: -70.9829 };
+const startPathCoords = [{ lat: 42.849810669147935, lng: -70.98818573987138 }];
+const defaultGridCorners = { topleft: { lat: 42.85414938719151, lng: -70.98833200038395 }, botleft: { lat: 42.84417554052568, lng: -70.98833200038395 }, botright: { lat: 42.84401759443596, lng: -70.97532473965633 }, topright: { lat: 42.85367747491202, lng: -70.97532473965633 }};
+
+const squareRad = 0.001; // 10 meters is 4th decimal places I think? (near the equator it is 11)
+
+mapcenter = attitash;
+gridCorners = defaultGridCorners;
 
 const boatSVG = {
     anchor: new google.maps.Point(200, 0),
@@ -13,18 +16,28 @@ const boatSVG = {
     fillOpacity: 1,
     scale: 0.025,
 };
+
 const waypoint = {
-        path: 'M -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0',
-        scale: 3,
-        strokeColor: '#004d00',
-        fillColor: '#00e600',
-        fillOpacity: .5,
+    path: 'M -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0',
+    scale: 5,
+    strokeColor: '#004d00',
+    strokeWidth: 0.25,
+    fillColor: '#00e600',
+    fillOpacity: .5,
+    fontSize: 2,
+};
+
+const blockedWaypoint = {
+    path: 'M -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0',
+    scale: 5,
+    strokeColor: '#004d00',
+    fillColor: '#e60045',
+    fillOpacity: .5,
 };
 
 
 // generate GridLines and their centers
 const genGridlines = () => {
-    const squareRad = 0.001; // 10 meters is 4th decimal places I think? (near the equator it is 11)
 
     for (let i = gridCorners.topleft.lng; i <= gridCorners.topright.lng; i += squareRad) {
         latLines.push(new google.maps.Polyline({
@@ -44,14 +57,7 @@ const genGridlines = () => {
     latLines.forEach((latLine, i) => {
         let temp = [];
         lngLines.forEach((lngLine, j) => {
-            // new google.maps.Marker({
-            //     position: { lat: lngLine.getPath().getAt(0).lat(), lng: latLine.getPath().getAt(0).lng() },
-            //     icon: waypoint,
-            //     map,
-            //     label: i.toString() + j.toString(),
-            // });
             temp.push({x: i, y: j, lat: lngLine.getPath().getAt(0).lat(), lng: latLine.getPath().getAt(0).lng()});
-            // temp.push({x: i, y: j, lat: lngLine[0].lat, lng: latLine[0].lng});
         });
         gridIntersects.push(temp);
     });
@@ -71,20 +77,80 @@ const genGridlines = () => {
                 position: center,
                 icon: waypoint,
                 label: i.toString() + j.toString(),
+                blocked: false,
+                partOfPath: false,
+                x: i,
+                y: j,
             }));
 
-            temp.push({x: i, y: j, lat: center.lat, lng: center.lng});
+            temp.push({ index: {x: i, y: j}, gps: {lat: center.lat, lng: center.lng}, flags: {blocked: false, partOfPath: false} });
         }
+
         gridCenters.push(temp);
     }
+    gridCenterPoints.forEach(center => {
+        center.addListener("click", event => {
+            center.blocked ? center.setIcon(waypoint) : center.setIcon(blockedWaypoint);
+            center.blocked = !center.blocked;
+            console.log(center.label + ' ' + center.blocked);
+            gridCenters[center.x][center.y].flags.blocked = center.blocked;
+        })
+    });
+}
+
+
+const parseInps = () => {
+    let center = document.getElementById('center').value.split(',');
+    let gridTL = document.getElementById('gridTL').value.split(',');
+    let gridBL = document.getElementById('gridBL').value.split(',');
+    let gridTR = document.getElementById('gridTR').value.split(',');
+    let gridBR = document.getElementById('gridBR').value.split(',');
+
+    map.setCenter({ lat: parseFloat(center[0]), lng: parseFloat(center[1]) });
+    gridCorners = { topleft: {lat: parseFloat(gridTL[0]), lng: parseFloat(gridTL[1]) }, botleft: {lat: parseFloat(gridBL[0]), lng: parseFloat(gridBL[1]) }, topright: {lat: parseFloat(gridTR[0]), lng: parseFloat(gridTR[1]) }, botright: {lat: parseFloat(gridBR[0]), lng: parseFloat(gridBR[1]) }};
+    
+    //reset all grid points and stuff
+    gridCenterPoints.forEach(center => center.setMap(null));
+    latLines.forEach(line => line.setMap(null));
+    lngLines.forEach(line => line.setMap(null));
+    latLines = [], lngLines = [], gridCenters = [], gridCenterPoints = [];
+
+    genGridlines();
+}
+
+
+const exportFile = () => {
+
+    let latitudeLines = latLines.map(line => ({
+                            start: { lat: line.latLngs.Nb[0].Nb[0].lat(), 
+                                     lng: line.latLngs.Nb[0].Nb[0].lng() }, 
+                            end:   { lat: line.latLngs.Nb[0].Nb[1].lat(),
+                                     lng: line.latLngs.Nb[0].Nb[1].lng() }, 
+                        })
+                )
+
+    let longitudeLines = lngLines.map(line => ({
+                            start: { lat: line.latLngs.Nb[0].Nb[0].lat(), 
+                                     lng: line.latLngs.Nb[0].Nb[0].lng() }, 
+                            end:   { lat: line.latLngs.Nb[0].Nb[1].lat(),
+                                     lng: line.latLngs.Nb[0].Nb[1].lng() }, 
+                        })
+                )
+
+
+    let blob = new Blob([JSON.stringify({ latitudeLines, longitudeLines, gridCenters }, null, 2)], {type : 'application/json'});
+    saveAs(blob, "mapgrid.json");
 }
 
 
 const toggleDebug = () => {
     console.log('debug toggled');
+
     if (!debug) {
         debug = true;
-        gridCenterPoints.forEach(center => {console.log(center);center.setMap(map);});
+        gridCenterPoints.forEach(center => {
+            center.setMap(map);
+        });
         latLines.forEach(line => line.setMap(map));
         lngLines.forEach(line => line.setMap(map));
     } else {
@@ -97,10 +163,10 @@ const toggleDebug = () => {
 
 
 const initMap = () => {
-    // The map, centered at quinsigamond
+    // The map, centered at attitash
     map = new google.maps.Map(document.getElementById('mapCanvas'), {
-        zoom: 17,
-        center: quinsigamond,
+        zoom: 16,
+        center: mapcenter,
         mapTypeId: 'terrain',
         // mapTypeId: 'satellite',
         // tilt: 60,
@@ -138,31 +204,25 @@ const initMap = () => {
         map,
     });
 
-    map.addListener("click", (event) => {
-        boatPath.getPath().push(event.latLng);
-        console.log('{ lat: '+ event.latLng.lat() +', lng: '+ event.latLng.lng() +' }');
-        // mock.push('{ lat: '+ event.latLng.lat() +', lng: '+ event.latLng.lng() +' }');
-    });
-
     // waypoint
     new google.maps.Marker({
-        position: { lat: 42.276268, lng: -71.755619 },
-        icon: waypoint,
-        map,
-        title: 'first',
-    });
-
-    new google.maps.Marker({
-        position: { lat: 42.276568, lng: -71.756619 },
+        position: { lat: 42.84780, lng: -70.9849 },
         icon: waypoint,
         map,
         title: 'second',
     });
 
     new google.maps.Marker({
-        position: { lat: 42.275858, lng: -71.756629 },
+        position: { lat: 42.84780, lng: -70.9809 },
         icon: waypoint,
         map,
-        title: 'third',
+        title: 'second',
+    });
+
+    new google.maps.Marker({
+        position: { lat: 42.8499, lng: -70.9829 },
+        icon: waypoint,
+        map,
+        title: 'second',
     });
 };
