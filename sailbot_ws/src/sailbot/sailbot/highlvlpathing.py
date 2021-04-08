@@ -8,7 +8,7 @@ This file will be used for high level pathing, we will define all of the subclas
 """
 Imports
 """
-import json, pygame, time, sys, platform, math, bisect, copy
+import json, pygame, time, sys, platform, math, bisect, copy, itertools
 from pygame.locals import KEYDOWN, K_q
 
 _VARS = {'surf': False, 'gridMult': 20,
@@ -39,7 +39,10 @@ class Coordinate():
         return self.weight > other.weight
 
     def __str__(self):
-        return 'weight - {} x: {}, y: {}, blocked: {}'.format(self.weight, self.x, self.y, self.blocked)
+        return 'weight - {} x: {}, y: {}, blocked: {}, inPath: {};'.format(self.weight, self.x, self.y, self.blocked, self.partOfPath)
+
+    def __repr__(self):
+        return str(self)
 
 ################
 # GPS Line Class
@@ -61,9 +64,13 @@ class Path():
     def __str__(self):
         return str(self.path[0])
     def __len__(self):
+        return len(self.path)
+    def __lt__(self, other):
+        return self.weight() < other.weight()
+    def __gt__(self, other):
+        return self.weight() > other.weight()
     def append(self, node):
         self.path.append(node)
-        return len(self.path)
     def path(self):
         return self.path
     def top(self):
@@ -93,6 +100,9 @@ class Grid():
     def get(self, x: int, y: int):
         return self.gridNodes[x * _VARS['gridCellsY'] + y]
 
+    def set(self, x: int, y: int, val):
+        self.gridNodes[x * _VARS['gridCellsY'] + y] = val
+
     def getGrid(self):
         return self.gridNodes
 
@@ -100,8 +110,10 @@ class Grid():
         with open(jsonFilePath) as file:
             data = json.load(file)
 
-        self.gridNodes = sum(data['gridCenters'], []) #gridcenters come in a list of lists so we have to collapse
+        self.gridNodes = list(itertools.chain.from_iterable(data['gridCenters'])) #gridcenters come in a list of lists so we have to collapse
+
         self.gridNodes = [Coordinate(node['index']['x'], node['index']['y'], node['gps']['lat'], node['gps']['lng'], node['flags']['blocked']) for node in self.gridNodes]
+
         self.latLines = data['latitudeLines']
         self.lngLines = data['longitudeLines']
         
@@ -163,21 +175,30 @@ class Grid():
         cellBorder = 10
         celldimX = celldimY = CELL_SIZE - (cellBorder*2)
 
+
         for node in self.gridNodes:
-            if node['flags']['partOfPath']:
+            if any(way[0] == node.x and way[1] == node.y for way in waypoints):
                 pygame.draw.rect(
                     _VARS['surf'], green,
                     (int(_VARS['gridOrigin'][0] + (celldimX * node.x) + cellBorder + (2 * node.x * cellBorder) + _VARS['lineWidth']/2),
                     int(_VARS['gridOrigin'][1] + (celldimY * node.y) + cellBorder + (2 * node.y * cellBorder) + _VARS['lineWidth']/2),
                     celldimX, celldimY)
                 )
-            elif node['flags']['blocked']:
+            elif node.partOfPath:
+                pygame.draw.rect(
+                    _VARS['surf'], lavender,
+                    (int(_VARS['gridOrigin'][0] + (celldimX * node.x) + cellBorder + (2 * node.x * cellBorder) + _VARS['lineWidth']/2),
+                    int(_VARS['gridOrigin'][1] + (celldimY * node.y) + cellBorder + (2 * node.y * cellBorder) + _VARS['lineWidth']/2),
+                    celldimX, celldimY)
+                )
+            elif node.blocked:
                 pygame.draw.rect(
                     _VARS['surf'], red,
                     (int(_VARS['gridOrigin'][0] + (celldimX * node.x) + cellBorder + (2 * node.x * cellBorder) + _VARS['lineWidth']/2),
                     int(_VARS['gridOrigin'][1] + (celldimY * node.y) + cellBorder + (2 * node.y * cellBorder) + _VARS['lineWidth']/2),
                     celldimX, celldimY)
                 )
+
 
     def visAstar(self):
         if not self.gridNodes:
@@ -210,7 +231,7 @@ class Astar():
         ## required params
         self.grid = grid
         self.wind_direction = wind_direction
-        self.start = [start]
+        self.start = Path(start)
         self.end = end
 
         ## globals
@@ -240,12 +261,12 @@ class Astar():
         self.resetPaths(self.start)
         counter = 0
 
-        while (len(self.pathsToCheck) > 0 and self.pathsToCheck[0].weight <= self.lowestPathWeight and counter < 1000):
+        while (len(self.pathsToCheck) > 0 and self.pathsToCheck[0].weight() <= self.lowestPathWeight and counter < 1000):
             # [print('c: ', i, ' - ', path) for i, path in enumerate(self.pathsToCheck)]
             self.findCheapestPath()
             counter += 1
-            print(counter)
-        [print(path.weight) for path in self.pathsToCheck]
+
+        # [print(path.path) for path in self.pathsToCheck]
         return self.lowestPath
 
 
@@ -257,7 +278,7 @@ class Astar():
 
 
     def findCheapestPath(self):
-        curPath = self.pathsToCheck.pop()
+        curPath = self.pathsToCheck.pop(0)
         pathNode = curPath.top()
         pathWeight = pathNode.weight
         pathNodeNeighbors = self.findNeightbors(pathNode.x, pathNode.y)
@@ -275,40 +296,9 @@ class Astar():
             tempPath.insert(insert) #insert at the first position
             self.addPath(tempPath)
             counter += 1
-    
-    def bisect_right(a, x, lo=0, hi=None, *, key=None):
-        """Return the index where to insert item x in list a, assuming a is sorted.
-        The return value i is such that all e in a[:i] have e <= x, and all e in
-        a[i:] have e > x.  So if x already appears in the list, a.insert(i, x) will
-        insert just after the rightmost x already there.
-        Optional args lo (default 0) and hi (default len(a)) bound the
-        slice of a to be searched.
-        """
-
-        if lo < 0:
-            raise ValueError('lo must be non-negative')
-        if hi is None:
-            hi = len(a)
-        # Note, the comparison uses "<" to match the
-        # __lt__() logic in list.sort() and in heapq.
-        if key is None:
-            while lo < hi:
-                mid = (lo + hi) // 2
-                if x < a[mid]:
-                    hi = mid
-                else:
-                    lo = mid + 1
-        else:
-            while lo < hi:
-                mid = (lo + hi) // 2
-                if x < key(a[mid]):
-                    hi = mid
-                else:
-                    lo = mid + 1
-        return lo
 
     def addPath(self, path):
-        pathNode = path[0]
+        pathNode = path.path[0]
         if (pathNode.x == self.end.x and pathNode.y == self.end.y): ## if we get to the destination
             if (pathNode.weight < self.lowestPathWeight): ## keep this new path if its good
                 self.lowestPathWeight = pathNode.weight
@@ -325,7 +315,7 @@ class Astar():
         # self.pathsToCheck.sort(key = lambda path: path[0].weight)  # sort it so we have the shortest path on top
         ## console.log('post',pathsToCheck)
 
-        self.bisect_right(self.pathsToCheck, path, key = (lambda p: p[0].weight))
+        bisect.insort_left(self.pathsToCheck, path)
 
 
     # calculate the distance from the destination for the current node
@@ -399,8 +389,22 @@ class Astar():
 g = Grid()
 g.importMapGridFile('../resource/mapgrid.json');
 
-astar = Astar(g, 0, g.get(3, 6), g.get(8, 8))
-aaa = astar.runAstar();
-[print(a) for a in aaa]
+waypoints = [(3, 6), (7, 6), (5, 4), (0, 4)]
+FullBoatPath = []
+one = Astar(g, 0, g.get(*waypoints[0]), g.get(*waypoints[1])).runAstar().path
+two = Astar(g, 0, g.get(*waypoints[1]), g.get(*waypoints[2])).runAstar().path
+three = Astar(g, 0, g.get(*waypoints[2]), g.get(*waypoints[3])).runAstar().path
+FullBoatPath.append(one)
+FullBoatPath.append(two)
+FullBoatPath.append(three)
+
+FullBoatPath =  list(itertools.chain.from_iterable(FullBoatPath))
+
+for node in FullBoatPath:
+    node.partOfPath = True
+    g.set(node.x, node.y, node)
+
+
+print(FullBoatPath)
 # print(aaa.pathsToCheck)
-# g.visAstar()
+g.visAstar()
