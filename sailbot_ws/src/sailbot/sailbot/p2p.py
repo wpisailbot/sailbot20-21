@@ -64,7 +64,7 @@ class P2P:
 		print(x)
 		return(x)
 	
-	def state2(self, track, windAng, boatAng):
+	def state2(self, windAng, boatAng, track):
 		#########
 		#state 2#
 		#########
@@ -101,7 +101,7 @@ class P2P:
 			print("wtf happened? self.temphead should only be 45 or 315!")
 		return (rudders)
 
-	def state3(self, track, boatAng):
+	def state3(self, boatAng, track, pointofsail):
 		#########
 		#state 3#
 		#########
