@@ -11,7 +11,7 @@ class P2P:
 
 	def getAction(self, wind, cmpas, track):
 		if getdistance() < 4:
-			{"Status" : "DONE"}
+			return {"Status" : "DONE"}
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
 		if boatAng < 0:
@@ -20,11 +20,14 @@ class P2P:
 		if pointofsail < 0:
 			pointofsail += 360
 		if self.state == 1:
-			self.state1(pointofsail, windAng, boatAng)
+			tt = self.state1(pointofsail, windAng, boatAng)
+			return tt
 		elif self.state == 2:
-			self.state2(windAng, boatAng, track)
+			rudder = self.state2(windAng, boatAng, track)
+			return rudder
 		elif self.state == 3:
-			self.state3(boatAng, track, pointofsail)
+			rudder = self.state3(boatAng, track, pointofsail)
+			return rudder
 		
 	def state1(self, pointofsail, windAng, boatAng):
 		#########
@@ -33,32 +36,32 @@ class P2P:
 		print("current state: 1")
 		if pointofsail >= 0 and pointofsail < 45:
 			self.temphead = 45
-			x = {"tack":"port","trimtab":"lift"}
+			x = {"state":"1"}
 			#json.dumps({"tack":"port","trimtab":"lift"})
 			self.state == 2
 		elif pointofsail >= 45 and pointofsail <= 135:
 			heading = boatAng
-			x = {"tack":"port","trimtab":"lift"}
+			x = {"state":"1"}
 			#json.dumps({"tack":"port","trimtab":"lift"})
 			self.state == 3
 		elif pointofsail > 135 and pointofsail < 180:
 			heading = boatAng
-			x = {"tack":"port","trimtab":"drag"}
+			x = {"state":"3"}
 			#json.dumps({"tack":"port","trimtab":"drag"})
 			self.state == 3
 		elif pointofsail >= 180 and pointofsail < 225:
 			heading = boatAng
-			x = {"tack":"starboard","trimtab":"drag"}
+			x = {"state":"2"}
 			#json.dumps({"tack":"starboard","trimtab":"drag"})
 			self.state == 3
 		elif pointofsail >= 225 and pointofsail <= 315:
 			heading = boatAng
-			x = {"tack":"starboard","trimtab":"lift"}
+			x = {"state":"0"}
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 3
 		elif pointofsail >= 315 and pointofsail < 360:
 			self.temphead = 315
-			x = {"tack":"starboard","trimtab":"lift"}
+			x = {"state":"0"}
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 2
 		print(x)
