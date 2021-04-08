@@ -9,7 +9,7 @@ class P2P:
 		self.temphead = 0 #45 when on port tack, 135 when on starboard
 	
 
-	def getAction(self, wind, cmpas):
+	def getAction(self, wind, cmpas, track):
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
 		if boatAng < 0:
@@ -20,7 +20,7 @@ class P2P:
 		if self.state == 1:
 			self.state1(pointofsail, windAng, boatAng)
 		elif self.state == 2:
-			self.state2()
+			self.state2(track, windAng, boatAng)
 		elif self.state == 3:
 			self.state3()
 		
@@ -28,6 +28,7 @@ class P2P:
 		#########
 		#state 1#
 		#########
+		print("current state: 1")
 		if pointofsail >= 0 and pointofsail < 45:
 			self.temphead = 45
 			x = {"tack":"port","trimtab":"lift"}
@@ -61,7 +62,11 @@ class P2P:
 		print(x)
 		return(x)
 	
-	def state2(self, boatAng, windAng, track):
+	def state2(self, track, windAng, boatAng):
+		#########
+		#state 2#
+		#########
+		print("current state: 2")
 		tempheading = windAng + self.temphead
 		if tempheading >= 360:
 			while tempheading >= 360:
@@ -86,8 +91,12 @@ class P2P:
 				self.state = 1
 		print("hi")
 
-	def state3(self,heading,pointofsail,windAng):
-		
+	def state3(self, track, windAng, boatAng):
+		#########
+		#state 3#
+		#########
+		print("current state: 3")
+		heading = boatAng
 	
 	def getHeading(self):
 		X = math.cos(math.radians(self.dest[0]))*math.sin(math.radians(self.difLon()))
