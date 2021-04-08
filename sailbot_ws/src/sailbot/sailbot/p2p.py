@@ -10,6 +10,8 @@ class P2P:
 	
 
 	def getAction(self, wind, cmpas, track):
+		if getdistance() < 4:
+			{"Status" : "DONE"}
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
 		if boatAng < 0:
@@ -20,9 +22,9 @@ class P2P:
 		if self.state == 1:
 			self.state1(pointofsail, windAng, boatAng)
 		elif self.state == 2:
-			self.state2(track, windAng, boatAng)
+			self.state2(windAng, boatAng, track)
 		elif self.state == 3:
-			self.state3()
+			self.state3(boatAng, track, pointofsail)
 		
 	def state1(self, pointofsail, windAng, boatAng):
 		#########
@@ -97,14 +99,35 @@ class P2P:
 				self.state = 2
 		else:
 			print("wtf happened? self.temphead should only be 45 or 315!")
-		
+		return (rudders)
 
-	def state3(self, track, windAng, boatAng):
+	def state3(self, track, boatAng):
 		#########
 		#state 3#
 		#########
 		print("current state: 3")
+		rudders = {"channel" : "8", "angle" : "70"}
 		heading = boatAng
+		# get and keep the boat on course #
+		variance = heading - track
+		if variance < -180:
+			variance += 360  #ensures that if heading = 359 and track = 1
+		elif variance > 180: #the boat wont try to turn the long way around
+			variance -= 360
+		if variance > 4:
+			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards port (change + to - if turning wrong way)
+		elif variance < -4:
+			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards starbord (change + to - if turning wrong way)
+		else:
+			rudders = {"channel" : "8", "angle" : "70"}
+		
+		if pointofsail <= 45 or pointofsail >= 315:
+			self.state = 1
+		else:
+			self.state = 3
+		return (rudders)
+		
+			
 	
 	def getHeading(self):
 		X = math.cos(math.radians(self.dest[0]))*math.sin(math.radians(self.difLon()))
@@ -129,6 +152,21 @@ class P2P:
 
 	def difLat(self):
 		return self.dest[0]-self.curpos[0]
+		
+	def getdistance(self):
+		# approximate radius of earth in km
+		R = 6373.0
+		lat1 = math.radians(self.curpos[0])
+		lon1 = math.radians(self.curpos[1])
+		lat2 = math.radians(self.dest[0])
+		lon2 = math.radians(self.dest[1])
+		dlon = math.radians(difLon())
+		dlat = math.radians(difLat())
+		a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+		c = 2 * atan2(sqrt(a), sqrt(1-a))
+		distance = R * c #in km
+		return(distance)
+
 		
 
 x = P2P((0,0),(1,1))
