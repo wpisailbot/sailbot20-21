@@ -40,7 +40,7 @@ class TeensyComms(Node):
         self.conn, self.addr = self.s.accept()
 
         self.client_list = []
-
+        self.client_list.append(self.conn)
         #create publisher to teensy status topic
         self.teensy_status_publisher_ = self.create_publisher(String, 'teensy_status', 10)
         timer_period = 0.5  # seconds
@@ -70,17 +70,17 @@ class TeensyComms(Node):
             msg = String()
             msg.data = data
             self.teensy_status_publisher_.publish(msg)
-            self.get_logger().info('Publishing: "%s"' % msg.data)
+            self.get_logger().error('Publishing: "%s"' % msg.data)
 
     def listener_callback(self, msg):
-        self.get_logger().info('Sending to teensy: "%s"' % msg.data)
+        self.get_logger().error('Sending to teensy: "%s"' % msg.data)
         if(datetime.now().timestamp() > self.timestamp):
             self.timestamp = datetime.now().timestamp() + 0.5 #half a second
         else:
             return
         try:
-            client_socket, addr = self.s.accept()
-            self.client_list.append(client_socket)
+            #client_socket, addr = self.s.accept()
+            #self.client_list.append(client_socket)
             #self.s.close()
             #self.bind_socket()
             for client in self.client_list:
