@@ -62,9 +62,12 @@ class ControlSystem(Node):
         
     def teensy_status_listener_callback(self, msg):
         self.get_logger().info('Received msg: "%s"' % msg.data)
-        msg_dict = json.loads(msg.data)
-        for i in msg_dict:
-            self.teensy_status[i] = msg_dict[i]
+        try:
+            msg_dict = json.loads(msg.data)
+            for i in msg_dict:
+                self.teensy_status[i] = msg_dict[i]
+        except Exception as e:
+            self.get_logger().error(str(e))
 
 
     def findTrimTabState(self, relativeWind):
@@ -77,21 +80,21 @@ class ControlSystem(Node):
             self.lastWinds.pop(0)
         #now find best trim tab state
         smoothAngle = self.median(self.lastWinds)
-        if(smoothAngle >= 45.0 and smoothAngle < 90):
-            #max lift starboard
-            toPub = self.makeJsonString({"state":"1"})
+        if(smoothAngle >= 45.0 and smoothAngle < 135):
+            #max lift port
+            toPub = self.makeJsonString({"state":"0"})
             self.teensy_control_publisher_.publish(toPub)
-        elif(smoothAngle >= 90 and smoothAngle < 180):
-            #max drag starboard
-            toPub = self.makeJsonString({"state":"3"})
-            self.teensy_control_publisher_.publish(toPub)
-        elif(smoothAngle >= 180 and smoothAngle < 270):
+        elif(smoothAngle >= 135 and smoothAngle < 180):
             #max drag port
             toPub = self.makeJsonString({"state":"2"})
             self.teensy_control_publisher_.publish(toPub)
-        elif(smoothAngle >= 270 and smoothAngle < 315):
-            #max lift port
-            toPub = self.makeJsonString({"state":"0"})
+        elif(smoothAngle >= 180 and smoothAngle < 225):
+            #max drag starboard
+            toPub = self.makeJsonString({"state":"3"})
+            self.teensy_control_publisher_.publish(toPub)
+        elif(smoothAngle >= 225 and smoothAngle < 315):
+            #max lift starboard
+            toPub = self.makeJsonString({"state":"1"})
             self.teensy_control_publisher_.publish(toPub)
         else:
             #in irons, min lift
