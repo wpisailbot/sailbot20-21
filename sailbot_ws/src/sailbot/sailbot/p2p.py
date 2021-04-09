@@ -11,7 +11,7 @@ class P2P:
 
 	def getAction(self, wind, cmpas, track):
 		if getdistance() < 4:
-			return {"Status" : "DONE"}
+			return {"status" : "DONE"}
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
 		if boatAng < 0:
@@ -21,13 +21,13 @@ class P2P:
 			pointofsail += 360
 		if self.state == 1:
 			tt = self.state1(pointofsail, windAng, boatAng)
-			return tt
+			return {"status" : "OK", "tt-state" : tt}
 		elif self.state == 2:
 			rudder = self.state2(windAng, boatAng, track)
-			return rudder
+			return {"status" : "OK", "rudder-angle" : rudder}
 		elif self.state == 3:
 			rudder = self.state3(boatAng, track, pointofsail)
-			return rudder
+			return {"status" : "OK", "rudder-angle" : rudder}
 		
 	def state1(self, pointofsail, windAng, boatAng):
 		#########
@@ -36,32 +36,32 @@ class P2P:
 		print("current state: 1")
 		if pointofsail >= 0 and pointofsail < 45:
 			self.temphead = 45
-			x = {"state":"1"}
+			x = 0 #max lift port
 			#json.dumps({"tack":"port","trimtab":"lift"})
 			self.state == 2
 		elif pointofsail >= 45 and pointofsail <= 135:
 			heading = boatAng
-			x = {"state":"1"}
+			x = 0 #max lift port
 			#json.dumps({"tack":"port","trimtab":"lift"})
 			self.state == 3
 		elif pointofsail > 135 and pointofsail < 180:
 			heading = boatAng
-			x = {"state":"3"}
+			x = 2 #max drag port
 			#json.dumps({"tack":"port","trimtab":"drag"})
 			self.state == 3
 		elif pointofsail >= 180 and pointofsail < 225:
 			heading = boatAng
-			x = {"state":"2"}
+			x = 3 #max drag starboard
 			#json.dumps({"tack":"starboard","trimtab":"drag"})
 			self.state == 3
 		elif pointofsail >= 225 and pointofsail <= 315:
 			heading = boatAng
-			x = {"state":"0"}
+			x = 1 #max lift starboard
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 3
 		elif pointofsail >= 315 and pointofsail < 360:
 			self.temphead = 315
-			x = {"state":"0"}
+			x = 1 #max lift starboard
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 2
 		print(x)
@@ -72,7 +72,7 @@ class P2P:
 		#state 2#
 		#########
 		print("current state: 2")
-		rudders = {"channel" : "8", "angle" : "70"}
+		rudders = 70
 		tempheading = windAng + self.temphead
 		if tempheading >= 360:
 			while tempheading >= 360:
@@ -83,12 +83,12 @@ class P2P:
 			variance += 360  #ensures that if tempheading = 359 and track = 1
 		elif variance > 180: #the boat wont try to turn the long way around
 			variance -= 360
-		if variance > 4:
-			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards port (change + to - if turning wrong way)
-		elif variance < -4:
-			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards starbord (change + to - if turning wrong way)
+		if variance > 4: #need to turn STBD (decrease rudder angle)
+			rudders = 70 + variance #turn towards port (change + to - if turning wrong way)
+		elif variance < -4: #need to turn PORT (increase rudder angle)
+			rudders = 70 + variance #turn towards starbord (change + to - if turning wrong way)
 		else:
-			rudders = {"channel" : "8", "angle" : "70"}
+			rudders = 70
 		
 		if self.temphead == 45:
 			if (boatAng < 315) and (boatAng > 180):
