@@ -62,12 +62,14 @@ class ControlSystem(Node):
         
     def teensy_status_listener_callback(self, msg):
         self.get_logger().info('Received msg: "%s"' % msg.data)
+
         try:
             msg_dict = json.loads(msg.data)
             for i in msg_dict:
                 self.teensy_status[i] = msg_dict[i]
         except Exception as e:
             self.get_logger().error(str(e))
+
 
 
     def findTrimTabState(self, relativeWind):
@@ -171,7 +173,7 @@ def main(args=None):
                 try:
                     control_system.findTrimTabState(control_system.airmar_data["wind-angle-relative"])
                 except Exception as e:
-                    self.get_logger().error(str(e))
+                    control_system.get_logger().error(str(e))
             else:
                 print("No wind angle values")
             if(float(control_system.serial_rc["state1"]) < 800):
