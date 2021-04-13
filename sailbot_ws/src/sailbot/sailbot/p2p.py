@@ -7,6 +7,7 @@ class P2P:
 		self.dest = dest #coordinates of end point 
 		self.state = 1
 		self.temphead = 0 #45 when on port tack, 135 when on starboard
+		self.rudder_angle = 70
 	
 
 	def getAction(self, wind, cmpas, track):
@@ -72,8 +73,8 @@ class P2P:
 		#state 2#
 		#########
 		print("current state: 2")
-		rudders = 70
-		tempheading = windAng + self.temphead
+		rudders = self.rudder_angle
+		tempheading = windAng + self.temphead #move 45 degrees from upwind either port or starboard
 		if tempheading >= 360:
 			while tempheading >= 360:
 				tempheading -= 360
@@ -83,13 +84,13 @@ class P2P:
 			variance += 360  #ensures that if tempheading = 359 and track = 1
 		elif variance > 180: #the boat wont try to turn the long way around
 			variance -= 360
-		if variance > 4: #need to turn STBD (decrease rudder angle)
-			rudders = 70 + variance #turn towards port (change + to - if turning wrong way)
-		elif variance < -4: #need to turn PORT (increase rudder angle)
-			rudders = 70 + variance #turn towards starbord (change + to - if turning wrong way)
+		if variance > 7: #need to turn STBD (decrease rudder angle)
+			rudders = self.rudder_angle - 10
+		elif variance < -7: #need to turn PORT (increase rudder angle)
+			rudders = self.rudder_angle + 10
 		else:
 			rudders = 70
-		
+		#check to make sure we aren't headed upwind
 		if self.temphead == 45:
 			if (boatAng < 315) and (boatAng > 180):
 				self.state = 1
@@ -102,14 +103,15 @@ class P2P:
 				self.state = 2
 		else:
 			print("wtf happened? self.temphead should only be 45 or 315!")
-		return (rudders)
+		self.rudder_angle = max(min(rudders, 115), 25) #constrain to 25-115
+		return (self.rudder_angle)
 
 	def state3(self, boatAng, track, pointofsail):
 		#########
 		#state 3#
 		#########
 		print("current state: 3")
-		rudders = {"channel" : "8", "angle" : "70"}
+		rudders = self.rudder_angle
 		heading = boatAng
 		# get and keep the boat on course #
 		variance = heading - track
@@ -117,18 +119,19 @@ class P2P:
 			variance += 360  #ensures that if heading = 359 and track = 1
 		elif variance > 180: #the boat wont try to turn the long way around
 			variance -= 360
-		if variance > 4:
-			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards port (change + to - if turning wrong way)
-		elif variance < -4:
-			rudders = {"channel" : "8", "angle" : str(70 + variance)} #turn towards starbord (change + to - if turning wrong way)
+		if variance > 7: #need to turn STBD (decrease rudder angle)
+			rudders = self.rudder_angle - 10
+		elif variance < -7: #need to turn PORT (increase rudder angle)
+			rudders = self.rudder_angle + 10
 		else:
-			rudders = {"channel" : "8", "angle" : "70"}
+			rudders = 70
 		
-		if pointofsail <= 45 or pointofsail >= 315:
+		if pointofsail <= 45 or pointofsail >= 315: #heading up wind, need to restart P2P
 			self.state = 1
 		else:
 			self.state = 3
-		return (rudders)
+		self.rudder_angle = max(min(rudders, 115), 25) #constrain to 25-115
+		return (self.rudder_angle)
 		
 			
 	
@@ -172,5 +175,3 @@ class P2P:
 
 		
 
-x = P2P((0,0),(1,1))
-x.getAction()
