@@ -11,7 +11,7 @@ class P2P:
 	
 
 	def getAction(self, wind, cmpas, track):
-		if getdistance() < 4:
+		if getdistance() < 0.07: #within 7 meters
 			return {"status" : "DONE"}
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
@@ -36,7 +36,7 @@ class P2P:
 		#########
 		print("current state: 1")
 		if pointofsail >= 0 and pointofsail < 45:
-			self.temphead = 45
+			self.temphead = 50
 			x = 0 #max lift port
 			#json.dumps({"tack":"port","trimtab":"lift"})
 			self.state == 2
@@ -61,7 +61,7 @@ class P2P:
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 3
 		elif pointofsail >= 315 and pointofsail < 360:
-			self.temphead = 315
+			self.temphead = 310
 			x = 1 #max lift starboard
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
 			self.state == 2
@@ -91,18 +91,18 @@ class P2P:
 		else:
 			rudders = 70
 		#check to make sure we aren't headed upwind
-		if self.temphead == 45:
+		if self.temphead == 50:
 			if (boatAng < 315) and (boatAng > 180):
 				self.state = 1
 			else:
 				self.state = 2
-		elif self.temphead == 315:
+		elif self.temphead == 310:
 			if (boatAng > 45) and (boatAng < 180):
 				self.state = 1
 			else:
 				self.state = 2
 		else:
-			print("wtf happened? self.temphead should only be 45 or 315!")
+			print("wtf happened? self.temphead should only be 50 or 310!")
 		self.rudder_angle = max(min(rudders, 115), 25) #constrain to 25-115
 		return (self.rudder_angle)
 
