@@ -154,6 +154,10 @@ And to start with info messages use:
 ros2 launch sailbot full_debug.py
 ```
 
+# Uploading Code
+To upload code, its best to connect the boat to ethernet in the lab and pull from git. There is an ethernet cable connected to a switch in the lab which is long enough to reach the boat. IMPORTANT: Before you can upload code, you will need to let the eth0 interface autoconfigure (by default it is configured by the startup.sh script for use with telemetry). This means you will need to modify the startup.sh file and comment out the ```ifconfig eth0 ...``` command with a #. You then must restart the jetson. This will let the boat connect over ethernet to the internet. Once you've uploaded code, be sure to uncomment the line and either reboot or run it in terminal, otherwise you wont be able to ssh into the boat.
+
+
 # Additional Notes
 
 Rememeber to rebuild and resource every time you change the code! (otherwise you will run the old code)
