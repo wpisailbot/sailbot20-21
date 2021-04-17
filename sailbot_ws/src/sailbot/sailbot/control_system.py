@@ -194,16 +194,16 @@ def main(args=None):
             control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
         else:
             destinations = [(42.276692,-71.799912),(42.277055,-71.799924)] 
-            if(self.p2p_alg == None): #instantiate new
-                self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+            if(control_system.p2p_alg == None): #instantiate new
+                control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
             
             wind = control_system.updateWinds(control_system.airmar_data["wind-angle-relative"])
-            action = self.p2p_alg.getAction(wind,control_system.airmar_data["magnetic-sensor-heading"],control_system.airmar_data["track-degrees-true"])
+            action = control_system.p2p_alg.getAction(wind,control_system.airmar_data["magnetic-sensor-heading"],control_system.airmar_data["track-degrees-true"])
             if(action['status'] == 'DONE'):
-                if(self.p2p_alg.dest == destinations[0]):
-                    self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[1])
+                if(control_system.p2p_alg.dest == destinations[0]):
+                    control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[1])
                 else:
-                    self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+                    control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
             else: #we have a non-done action (either trim tab or rudders)
                 if('tt-state' in action):
                     toPub = control_system.makeJsonString({"state":action['tt-state']})
