@@ -3,7 +3,7 @@ from rclpy.node import Node
 import json
 from std_msgs.msg import String
 import time
-import autonomous.p2p
+import sailbot.autonomous.p2p
 
 class ControlSystem(Node):
 
