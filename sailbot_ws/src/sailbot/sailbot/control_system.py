@@ -194,7 +194,7 @@ def main(args=None):
             control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
         else:
             destinations = [(42.276692,-71.799912),(42.277055,-71.799924)] 
-            if(self.p2p_alg = None): #instantiate new
+            if(self.p2p_alg == None): #instantiate new
                 self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
             
             wind = control_system.updateWinds(control_system.airmar_data["wind-angle-relative"])
