@@ -3,7 +3,7 @@ from rclpy.node import Node
 import json
 from std_msgs.msg import String
 import time
-
+import autonomous.p2p
 
 class ControlSystem(Node):
 
@@ -46,6 +46,7 @@ class ControlSystem(Node):
 
         #create instance var for keeping queue of wind data
         self.lastWinds = []
+        self.p2p_alg = None
         
 
     def serial_rc_listener_callback(self, msg):
@@ -70,9 +71,7 @@ class ControlSystem(Node):
         except Exception as e:
             self.get_logger().error(str(e))
 
-
-
-    def findTrimTabState(self, relativeWind):
+    def updateWinds(self, relativeWind):
         #check we have new wind
         if(len(self.lastWinds) != 0 and relativeWind == self.lastWinds[len(self.lastWinds) -1]):
             return       
@@ -82,6 +81,10 @@ class ControlSystem(Node):
             self.lastWinds.pop(0)
         #now find best trim tab state
         smoothAngle = self.median(self.lastWinds)
+        return smoothAngle
+
+    def findTrimTabState(self, relativeWind):
+        smoothAngle = self.updateWinds(relativeWind)
         if(smoothAngle >= 45.0 and smoothAngle < 135):
             #max lift port
             toPub = self.makeJsonString({"state":"0"})
@@ -159,10 +162,10 @@ def main(args=None):
 
         #TODO ^^implement
         
-        inRC = True
+        
         if(len(control_system.serial_rc) < 2):
             pass #don't have rc values
-        elif(inRC):
+        elif(float(control_system.serial_rc["state2"]) < 400): #in RC
             if(float(control_system.serial_rc["state1"]) < 400):
                 #manual
                 manualAngle = int((float(control_system.serial_rc["manual"]) / 2000) * 100) + 65
@@ -189,8 +192,26 @@ def main(args=None):
             rudderAngle = (float(control_system.serial_rc["rudder"]) / 2000 * 90) + 25
             rudderJson = {"channel": "8", "angle": rudderAngle}
             control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
-        
-
+        else:
+            destinations = [(42.276692,-71.799912),(42.277055,-71.799924)] 
+            if(self.p2p_alg = None): #instantiate new
+                self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+            
+            wind = control_system.updateWinds(control_system.airmar_data["wind-angle-relative"])
+            action = self.p2p_alg.getAction(wind,control_system.airmar_data["magnetic-sensor-heading"],control_system.airmar_data["track-degrees-true"])
+            if(action['status'] == 'DONE'):
+                if(self.p2p_alg.dest == destinations[0]):
+                    self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[1])
+                else:
+                    self.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+            else: #we have a non-done action (either trim tab or rudders)
+                if('tt-state' in action):
+                    toPub = control_system.makeJsonString({"state":action['tt-state']})
+                    control_system.teensy_control_publisher_.publish(toPub)
+                elif('rudder-angle' in action):
+                    rudderJson = {"channel": "8", "angle": action['rudder-angle']}
+                    control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
+                control_system.ballastAlgorithm()
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
