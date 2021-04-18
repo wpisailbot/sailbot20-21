@@ -198,10 +198,10 @@ def main(args=None):
                 
                 try:
                     if(control_system.p2p_alg == None): #instantiate new
-                        control_system.p2p_alg = p2p.P2P((control_system.airmar_data['Latitude'], control_system.airmar_data['Longitude']), destinations[0])
+                        control_system.p2p_alg = p2p.P2P((float(control_system.airmar_data['Latitude']), float(control_system.airmar_data['Longitude'])), destinations[0])
 
                     wind = control_system.updateWinds(control_system.airmar_data["wind-angle-relative"])
-                    action = control_system.p2p_alg.getAction(wind,control_system.airmar_data["magnetic-sensor-heading"],control_system.airmar_data["track-degrees-true"])
+                    action = control_system.p2p_alg.getAction(wind,float(control_system.airmar_data["magnetic-sensor-heading"]),float(control_system.airmar_data["track-degrees-true"]))
                     control_system.get_logger().error(str(control_system.p2p_alg.getdistance()))
                     control_system.get_logger().error(str(action))
                     if(action['status'] == 'DONE'):
