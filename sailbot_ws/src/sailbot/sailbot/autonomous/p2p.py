@@ -11,7 +11,7 @@ class P2P:
 	
 
 	def getAction(self, wind, cmpas, track):
-		if getdistance() < 0.07: #within 7 meters
+		if self.getdistance() < 0.01: #within 10 meters
 			return {"status" : "DONE"}
 		windAng = self.getWindToNorth(wind,cmpas) #direction of wind relative to north
 		boatAng = self.getHeading() #direction relative to north to get from current position to end position
@@ -166,10 +166,10 @@ class P2P:
 		lon1 = math.radians(self.curpos[1])
 		lat2 = math.radians(self.dest[0])
 		lon2 = math.radians(self.dest[1])
-		dlon = math.radians(difLon())
-		dlat = math.radians(difLat())
+		dlon = math.radians(self.difLon())
+		dlat = math.radians(self.difLat())
 		a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-		c = 2 * atan2(sqrt(a), sqrt(1-a))
+		c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 		distance = R * c #in km
 		return(distance)
 
