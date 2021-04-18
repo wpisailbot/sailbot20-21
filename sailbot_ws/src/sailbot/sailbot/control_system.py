@@ -3,7 +3,7 @@ from rclpy.node import Node
 import json
 from std_msgs.msg import String
 import time
-import sailbot.autonomous.p2p
+import sailbot.autonomous.p2p as p2p
 
 class ControlSystem(Node):
 
@@ -165,7 +165,7 @@ def main(args=None):
         
         if(len(control_system.serial_rc) < 2):
             pass #don't have rc values
-        elif(float(control_system.serial_rc["state2"]) < 400): #in RC
+        elif(float(control_system.serial_rc["state2"]) > 600): #in RC
             if(float(control_system.serial_rc["state1"]) < 400):
                 #manual
                 manualAngle = int((float(control_system.serial_rc["manual"]) / 2000) * 100) + 65
@@ -192,26 +192,35 @@ def main(args=None):
             rudderAngle = (float(control_system.serial_rc["rudder"]) / 2000 * 90) + 25
             rudderJson = {"channel": "8", "angle": rudderAngle}
             control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
-        else:
-            destinations = [(42.276692,-71.799912),(42.277055,-71.799924)] 
-            if(control_system.p2p_alg == None): #instantiate new
-                control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+        elif(float(control_system.serial_rc["state2"]) < 600):
+            destinations = [(42.277055,-71.799924),(42.276692,-71.799912)] 
+            if('latitude' in control_system.airmar_data and 'longitude' in control_system.airmar_data):
+                
+                try:
+                    if(control_system.p2p_alg == None): #instantiate new
+                        control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+
+                    wind = control_system.updateWinds(control_system.airmar_data["wind-angle-relative"])
+                    action = control_system.p2p_alg.getAction(wind,control_system.airmar_data["magnetic-sensor-heading"],control_system.airmar_data["track-degrees-true"])
+                    if(action['status'] == 'DONE'):
+                        if(control_system.p2p_alg.dest == destinations[0]):
+                            control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[1])
+                        else:
+                            control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
+                    else: #we have a non-done action (either trim tab or rudders)
+                        if('tt-state' in action):
+                            toPub = control_system.makeJsonString({"state" : int(action['tt-state'])})
+                            control_system.teensy_control_publisher_.publish(toPub)
+                        elif('rudder-angle' in action):
+                            rudderJson = {"channel": "8", "angle": int(action['rudder-angle'])}
+                            control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
+                        control_system.ballastAlgorithm()
+                except Exception as e:
+                    control_system.get_logger().error(str(e))
+            else:
+                control_system.get_logger().error("No latitude and longitude data")
             
-            wind = control_system.updateWinds(control_system.airmar_data["wind-angle-relative"])
-            action = control_system.p2p_alg.getAction(wind,control_system.airmar_data["magnetic-sensor-heading"],control_system.airmar_data["track-degrees-true"])
-            if(action['status'] == 'DONE'):
-                if(control_system.p2p_alg.dest == destinations[0]):
-                    control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[1])
-                else:
-                    control_system.p2p_alg = p2p.P2P((control_system.airmar_data['latitude'], control_system.airmar_data['longitude']), destinations[0])
-            else: #we have a non-done action (either trim tab or rudders)
-                if('tt-state' in action):
-                    toPub = control_system.makeJsonString({"state":action['tt-state']})
-                    control_system.teensy_control_publisher_.publish(toPub)
-                elif('rudder-angle' in action):
-                    rudderJson = {"channel": "8", "angle": action['rudder-angle']}
-                    control_system.pwm_control_publisher_.publish(control_system.makeJsonString(rudderJson))
-                control_system.ballastAlgorithm()
+            
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
