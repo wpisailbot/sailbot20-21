@@ -43,6 +43,11 @@ class AirmarReader(Node):
                 lat = float(lat_raw[:2]) + float(lat_raw[2:])/60.0
                 lon_raw = args[3]
                 lon = float(lon_raw[:3]) + float(lon_raw[3:])/60.0
+                if(args[2] == 'S'):
+                    lat *= -1
+                if(args[4] == 'W'):
+                    lon *= -1
+
                 return {"Latitude":lat, 
                         "Latitude-direction":args[2],
                         "Longitude":lon,
