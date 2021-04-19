@@ -7,7 +7,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 
 
-class AirmarReader(Node):
+class AirmarReader(Node): #translates airmar data into json and publishes on 'airmar_data' ROS2 topic
 
     def __init__(self):
         super().__init__('airmar_reader')
