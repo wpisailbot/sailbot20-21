@@ -5,7 +5,7 @@ from std_msgs.msg import String
 import time
 import sailbot.autonomous.p2p as p2p
 
-class ControlSystem(Node):
+class ControlSystem(Node): #gathers data from some nodes and distributes it to others
 
     def __init__(self):
         super().__init__('control_system')
