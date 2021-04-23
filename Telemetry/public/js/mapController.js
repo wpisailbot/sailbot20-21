@@ -161,6 +161,7 @@ const initMap = () => {
         map,
         title: 'second',
     });
+
     // new google.maps.Marker({
     //     position: { lat: 42.8499, lng: -70.9829 },
     //     icon: waypoint,
