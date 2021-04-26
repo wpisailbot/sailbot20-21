@@ -7,14 +7,14 @@ from rclpy.node import Node
 from std_msgs.msg import String
 
 
-class AirmarReader(Node):
+class AirmarReader(Node): #translates airmar data into json and publishes on 'airmar_data' ROS2 topic
 
     def __init__(self):
         super().__init__('airmar_reader')
         self.ser = serial.Serial('/dev/serial/by-id/usb-Maretron_USB100__NMEA_2000_USB_Gateway__1170079-if00')
         self.publisher_ = self.create_publisher(String, 'airmar_data', 10)
-        timer_period = 0.01  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        #timer_period = 0.01  # seconds
+        #self.timer = self.create_timer(timer_period, self.timer_callback)
 
 
     def timer_callback(self):
@@ -43,6 +43,11 @@ class AirmarReader(Node):
                 lat = float(lat_raw[:2]) + float(lat_raw[2:])/60.0
                 lon_raw = args[3]
                 lon = float(lon_raw[:3]) + float(lon_raw[3:])/60.0
+                if(args[2] == 'S'):
+                    lat *= -1
+                if(args[4] == 'W'):
+                    lon *= -1
+
                 return {"Latitude":lat, 
                         "Latitude-direction":args[2],
                         "Longitude":lon,
@@ -109,8 +114,10 @@ def main(args=None):
     rclpy.init(args=args)
 
     airmar_reader = AirmarReader()
-
-    rclpy.spin(airmar_reader)
+    while( rclpy.ok() ):
+        rclpy.spin_once(airmar_reader, timeout_sec=.001)
+        airmar_reader.timer_callback()
+    #rclpy.spin(airmar_reader)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
