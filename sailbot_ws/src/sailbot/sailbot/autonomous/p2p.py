@@ -90,7 +90,7 @@ class P2P:
 			rudders = self.rudder_angle + 10
 		else:
 			rudders = 70
-		#check to make sure we aren't headed upwind
+		#handles tacking when destination is no longer in the no sail zone
 		if self.temphead == 50:
 			if (boatAng < 315) and (boatAng > 180):
 				self.state = 1
