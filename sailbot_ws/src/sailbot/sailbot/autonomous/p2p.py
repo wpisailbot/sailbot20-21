@@ -80,9 +80,9 @@ class P2P:
 				tempheading -= 360
 		# get and keep the boat on course #
 		variance = tempheading - track
-		if variance < -180:
-			variance += 360  #ensures that if tempheading = 359 and track = 1
-		elif variance > 180: #the boat wont try to turn the long way around
+		if variance < -180:  #ensures that if tempheading = 359 and track = 1 the boat wont try to turn the long way around
+			variance += 360
+		elif variance > 180:
 			variance -= 360
 		if variance > 7: #need to turn STBD (decrease rudder angle)
 			rudders = self.rudder_angle - 10
