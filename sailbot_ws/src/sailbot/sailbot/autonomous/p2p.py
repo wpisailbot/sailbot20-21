@@ -39,32 +39,32 @@ class P2P:
 			self.temphead = 50
 			x = 0 #max lift port
 			#json.dumps({"tack":"port","trimtab":"lift"})
-			self.state == 2
+			self.state = 2
 		elif pointofsail >= 45 and pointofsail <= 135:
 			heading = boatAng
 			x = 0 #max lift port
 			#json.dumps({"tack":"port","trimtab":"lift"})
-			self.state == 3
+			self.state = 3
 		elif pointofsail > 135 and pointofsail < 180:
 			heading = boatAng
 			x = 2 #max drag port
 			#json.dumps({"tack":"port","trimtab":"drag"})
-			self.state == 3
+			self.state = 3
 		elif pointofsail >= 180 and pointofsail < 225:
 			heading = boatAng
 			x = 3 #max drag starboard
 			#json.dumps({"tack":"starboard","trimtab":"drag"})
-			self.state == 3
+			self.state = 3
 		elif pointofsail >= 225 and pointofsail <= 315:
 			heading = boatAng
 			x = 1 #max lift starboard
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
-			self.state == 3
+			self.state = 3
 		elif pointofsail >= 315 and pointofsail < 360:
 			self.temphead = 310
 			x = 1 #max lift starboard
 			#json.dumps({"tack":"starboard","trimtab":"lift"})
-			self.state == 2
+			self.state = 2
 		print(x)
 		return(x)
 	
