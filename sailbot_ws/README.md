@@ -3,7 +3,7 @@
 - The Jetson is running a version of ubuntu 18.04 provided by Nvidia. Info on the Jetson and the OS can be found here: https://developer.nvidia.com/embedded/learn/get-started-jetson-nano-devkit
 - The Jetson uses rc-local.service to run a script on startup which configures a few things including allowing non-root access to some serial devices and setting up the ethernet bridge connection. The sartup script can be found in the ~/ directory, and is called startup.sh. To check the status of the startup service, you can use ```systemctl status rc-local.service```. Using this to start the wifi unfortunately fails.
 - The ROS 2 distribution used is Dashing Diademata, and installation directions can be found here: https://docs.ros.org/en/dashing/Installation/Linux-Install-Debians.html 
-
+- Username is "sailbot" and password is "admin"
 
 
 # Overview of the ROS Architecture
@@ -82,7 +82,7 @@ Assuming the boat is powered and the ethernet bridge is powered and plugged in, 
 The tool should show two bridges. The one with IP ending in 17 is on the boat. The one ending in 20 is what you are connected to.
 
 If you do not see either bridge, try turning off wifi and hitting search again.
-If that doesn't solve, try restarting your pc, turing off your firewall, etc.
+If that doesn't solve, try restarting your pc/jetson, turing off your firewall, etc.
 
 Once you see both bridges you may be able to ssh, but we've found it wont work unless you follow these steps:
 1. double click the ip ending in 20, and change the "target device new parameters" to be IP:192.168.17.21. keep all else the same.
