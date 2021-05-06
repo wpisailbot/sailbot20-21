@@ -160,7 +160,7 @@ ros2 launch sailbot full_debug.py
 
 When running the nodes via launch files, the message logging will default to only showing error messages (info messages, debug messages and in code print statements will not be shown). The full_debug launch will show debug messages. If you would like to see info messages or in code print statments, it is recomended to run a node (or several) individually in their own terminal. Again, multiple ssh clients can be used to acomplish this, but you will need to source, build, and install the ros package for each client. 
 
-
+If you ever need to refresh your workspace (i.e.: you build but it runs old code or other wierd things happen), you can always delete your log, build, and install directories with rm -rf <directory> and then rebuild from scratch.
 
 # Uploading Code
 To upload code, its best to connect the boat to ethernet in the lab and pull from git. There is an ethernet cable connected to a network switch in the lab (along the side wall where some old PCs are sitting) which is long enough to reach the boat. IMPORTANT: Before you can upload code, you will need to let the eth0 interface autoconfigure (by default it is configured by the startup.sh script for use with telemetry). This means you will need to modify the startup.sh file and comment out the ```ifconfig eth0 ...``` command with a #. You then must restart the jetson. This will let the boat connect over ethernet to the internet. Once you've uploaded code, be sure to uncomment the line and either reboot or run it in terminal, otherwise you wont be able to ssh into the boat with the telemetry.
