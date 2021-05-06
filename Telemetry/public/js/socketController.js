@@ -11,7 +11,7 @@ const socketInit = () => {
 
     // Creates callback for when data is recieved from the server (updates all the page components)
 	socket.on('updateAirmarDash', (data) => {
-	/********** Apparent Wind **********/
+    /********** Apparent Wind **********/
 
 		let appSpeed = (data['wind-speed-relative-meters'] ? data['wind-speed-relative-meters'] : 60);
 		let appDirection = (data['wind-angle-relative'] ? data['wind-angle-relative'] : 0);
@@ -82,50 +82,50 @@ const socketInit = () => {
 
 	/*** Air Temp **********/
 
-	// airtemp.updateGauge(data['outside-temp'] ? data['outside-temp'] : 0);
+	   // airtemp.updateGauge(data['outside-temp'] ? data['outside-temp'] : 0);
 
 	/*** Wind Chill **********/
 
-	// windchill.updateGauge(data.windchill ? data.windchill : 0);
+    	// windchill.updateGauge(data.windchill ? data.windchill : 0);
 
 	/********** Barometric Pressure **********/
 
-	// pressure.updateGauge(data.pressure ? data.pressure : 950);
+	   // pressure.updateGauge(data.pressure ? data.pressure : 950);
 	
 
 	/********** Pitch and Roll **********/
 
 		// .attr('transform', 'rotate('+ (data.pitchroll.roll ? data.pitchroll.roll : 30) +' 65, 65)');
-    // d3.select('#compassBoat')
-	d3.select('#rollIndicator')
-        .transition()
-        .duration(1000)
-        .ease(d3.easeElasticOut, 1, 0.9)
-        .attrTween("transform", () => d3.interpolateString('rotate('+ document.querySelector('#rollIndicator').transform.baseVal[0].angle +', 65, 65)', 'rotate('+ (data.roll ? data.roll : 30) +' 65, 65)')); 
-    d3.select('#pitchIndicator')
-        .transition()
-        .duration(1000)
-        .ease(d3.easeElasticOut, 1, 0.9)
-        .attrTween("transform", () => d3.interpolateString('translate(0, '+ (document.querySelector('#pitchIndicator').transform.baseVal[0].matrix.f) +')', 'translate(0, '+ (data.pitch ? data.pitch : 0) +')'));
-	// d3.select('#pitchIndicator')
-	// 	.attr('transform', 'translate(0, '+ (data.pitchroll.pitch ? data.pitchroll.pitch : 0) +')');
+        // d3.select('#compassBoat')
+    	d3.select('#rollIndicator')
+            .transition()
+            .duration(1000)
+            .ease(d3.easeElasticOut, 1, 0.9)
+            .attrTween("transform", () => d3.interpolateString('rotate('+ document.querySelector('#rollIndicator').transform.baseVal[0].angle +', 65, 65)', 'rotate('+ (data.roll ? data.roll : 30) +' 65, 65)')); 
+        d3.select('#pitchIndicator')
+            .transition()
+            .duration(1000)
+            .ease(d3.easeElasticOut, 1, 0.9)
+            .attrTween("transform", () => d3.interpolateString('translate(0, '+ (document.querySelector('#pitchIndicator').transform.baseVal[0].matrix.f) +')', 'translate(0, '+ (data.pitch ? data.pitch : 0) +')'));
+    	// d3.select('#pitchIndicator')
+    	// 	.attr('transform', 'translate(0, '+ (data.pitchroll.pitch ? data.pitchroll.pitch : 0) +')');
 
 	/********** Ground Speed **********/
 
-	groundspeed.updateGauge(data['speed-kmh'] ? data['speed-kmh'] : 0);
-	
+    	groundspeed.updateGauge(data['speed-kmh'] ? data['speed-kmh'] : 0);
+    	
 	/********** Rate Gyro **********/
 
-	// document.querySelector('#phi').innerHTML = data.gyro.phi ? data.gyro.phi : 0;
-	// document.querySelector('#theta').innerHTML = data.gyro.theta ? data.gyro.theta : 0;
-	// document.querySelector('#psi').innerHTML = data.gyro.psi ? data.gyro.psi : 0;
+    	// document.querySelector('#phi').innerHTML = data.gyro.phi ? data.gyro.phi : 0;
+    	// document.querySelector('#theta').innerHTML = data.gyro.theta ? data.gyro.theta : 0;
+    	// document.querySelector('#psi').innerHTML = data.gyro.psi ? data.gyro.psi : 0;
 
 	/********** Relative Humidity **********/
 
-	// document.querySelector('#humidityVal').innerHTML = (data.groundspeed ? data.groundspeed : 0) + '%';
+    	// document.querySelector('#humidityVal').innerHTML = (data.groundspeed ? data.groundspeed : 0) + '%';
 
 	/********** GPS **********/
-    boatPath.getPath().push(new google.maps.LatLng(data.latitude ? data.latitude : 0, data.longitude ? data.longitude : 0));
+        boatPath.getPath().push(new google.maps.LatLng(data['Latitude'] ? data['Latitude'] : 0, data['Longitude'] ? data['Longitude'] : 0));
 
 	});
     

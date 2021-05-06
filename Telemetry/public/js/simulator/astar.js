@@ -26,7 +26,7 @@ let lowestPathWeight = 999999999;
 */
 const runAstar = (start, dest) => {
 	destination = dest; // pops the first element
-	// console.log(gridCenters); // holds all the points, and their coords
+	console.log(gridCenters); // holds all the points, and their coords
 	resetPaths(start);
 	let counter = 0
 	// console.log(start, pathsToCheck);
