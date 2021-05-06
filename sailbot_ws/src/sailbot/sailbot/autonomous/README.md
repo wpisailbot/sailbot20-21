@@ -7,6 +7,22 @@ This directory houses the alorithms for the A* and point-to-point algorithms as 
 A general flow for the algorithms is as follows: the ballast and A* run concurrently, where the P2P runs as a part of the A*. In other words, the A* acts at a high level, where the P2P works off of its decisions. After determining a path, the A* feeds its output point by point into the P2P, which begins anew for each point.
 
 ## A Star (A*)
+The A* algorithm determines the waypoints that the boat should sail through. The algorithm takes a grid that is generated through the Telemetry interface. The grid is generated from a json file. The class parses the json file and creates the relevant objects to run A*. The algorithm must still be integrated into the actual code to use the waypoints for P2P. The way the class works is through this:
+
+         Heuristic:
+           - node weight: will be total distance from current node to the end
+           - edge weight: will be current direction of travel + current wind direction vs edge direction
+        
+         Algo structure:
+           - F(n) = g(n) + h(n)
+               - g(n) = edge weight
+               - h(n) = dest node weight
+        
+          - Evaluate all pathsToCheck from a node, then start continuing on the lowest cost one
+          - once you find the final node, keep going through your list until the value you have is lower than
+               the top of the list
+
+For testing purposes the file can just be run on its own, and an interface will pop up on windows. Through this the algorithm can be tweaked and tested so the correct waypoints are generated.
 
 ## Point to Point (P2P)
 The P2P (point to point) algorithm is used to travel between waypoints set by the A* algorithm. It takes the GPS coordinates of a desired destination and data provided by the Airmar and uses them to determine how to adjust the sail and rudders. It is controlled primarily through the getAction function, which is what you will call to update the sail and rudders. It is intended to be called repetedly to ensure the boat stays on course. The code switches among activating 3 states depending on what its state variable is set to. The first state controls the trim tab and recognizes whether or not the destination coordinates fall within the no sail zone of the boat's current location. The second state activates if the destination is within the no sail zone and instructs the rudders to follow a course that will take the boat as far upwind as possible. The third state activates if the destination is not within the no sail zone and instructs the rudders to follow a course that leads straight to the destination.
