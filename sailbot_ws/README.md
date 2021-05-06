@@ -113,6 +113,9 @@ On Mac, you can first connect the powered ethernet bridge to your machine. Your 
 7. test by pinging 192.168.17.17 (the target IP for the express ethernet bridge in the hull)
 
 # Starting the WiFi
+
+You will only need to run this once, but it will need to be run every time you restart the jetson.
+
 ```
 sudo nmcli device wifi hotspot con-name sailbothot ssid sailbothot band bg password salad123
 ```
@@ -167,6 +170,9 @@ To upload code, its best to connect the boat to ethernet in the lab and pull fro
 
 Rememeber to rebuild and resource every time you change the code! (otherwise you will run the old code)
 
+You can always connect over the micro usb with serial if needed
+
+If you have questions feel free to email nick.eusman@gmail.com
 
 
 
