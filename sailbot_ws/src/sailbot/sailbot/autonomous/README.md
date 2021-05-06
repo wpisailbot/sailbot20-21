@@ -2,6 +2,11 @@
 # Autonomous Systems
 This directory houses the alorithms for the A* and point-to-point algorithms as well as explains all the algorithms implemented by the team.
 
+# Building
+
+To rebuild the code in this directory with colcon, we haven't found an effective way for ROS to recognize that the package must be rebuilt (it is already specificed as a package to be built in setup.py, but won't build again if already built), thus, you will need to remove the current file you would like to build in the build directory:
+`sailbot20-21/sailbot_ws/build/sailbot/build/lib/sailbot/autonomous`
+
 # Algorithms Explainations
 
 A general flow for the algorithms is as follows: the ballast and A* run concurrently, where the P2P runs as a part of the A*. In other words, the A* acts at a high level, where the P2P works off of its decisions. After determining a path, the A* feeds its output point by point into the P2P, which begins anew for each point.
