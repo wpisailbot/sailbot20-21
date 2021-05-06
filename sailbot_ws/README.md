@@ -172,6 +172,8 @@ Rememeber to rebuild and resource every time you change the code! (otherwise you
 
 You can always connect over the micro usb with serial if needed
 
+More information on the autonomous systems can be found in `sailbot20-21/sailbot_ws/src/sailbot/sailbot/autonomous/`
+
 If you have questions feel free to email nick.eusman@gmail.com
 
 
