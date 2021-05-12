@@ -387,23 +387,16 @@ class Astar():
 
 ### Temp Test code
 g = Grid()
-g.importMapGridFile('../resource/mapgrid.json');
+g.importMapGridFile('../../resource/mapgrid.json');
 
-
-waypoints = [(0, 4), (3, 6), (7, 6), (5, 4), (0, 4)]
-waypoints = [(7, 6), (3, 2)]
+waypoints = [(3, 6), (7, 6), (5, 4), (0, 4)]
 FullBoatPath = []
-
-for way in range(len(waypoints) - 1):
-    p = Astar(g, 0, g.get(*waypoints[way]), g.get(*waypoints[way + 1])).runAstar().path
-    FullBoatPath.append(p)
-# one = Astar(g, 0, g.get(*waypoints[0]), g.get(*waypoints[1])).runAstar().path
-# two = Astar(g, 0, g.get(*waypoints[1]), g.get(*waypoints[2])).runAstar().path
-# three = Astar(g, 0, g.get(*waypoints[2]), g.get(*waypoints[3])).runAstar().path
-# FullBoatPath.append(one)
-# FullBoatPath.append(two)
-# FullBoatPath.append(three)
-
+one = Astar(g, 0, g.get(*waypoints[0]), g.get(*waypoints[1])).runAstar().path
+two = Astar(g, 0, g.get(*waypoints[1]), g.get(*waypoints[2])).runAstar().path
+three = Astar(g, 0, g.get(*waypoints[2]), g.get(*waypoints[3])).runAstar().path
+FullBoatPath.append(one)
+FullBoatPath.append(two)
+FullBoatPath.append(three)
 
 FullBoatPath =  list(itertools.chain.from_iterable(FullBoatPath))
 
