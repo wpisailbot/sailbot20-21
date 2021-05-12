@@ -55,7 +55,6 @@ class TeensyComms(Node):
         self.subscription  # prevent unused variable warning
         self.timestamp = 0 #check before sending to teensy
 
-
     def bind_socket(self):
         #self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         #self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
@@ -64,7 +63,6 @@ class TeensyComms(Node):
         #self.s.listen(1)
         self.conn, self.addr = self.s.accept()
 	
-
     def timer_callback(self):
         data = self.conn.recv(1024)
         if data:
@@ -90,7 +88,6 @@ class TeensyComms(Node):
         except Exception as e:
             self.get_logger().error(str(e))
             self.bind_socket()
-
 
 def main(args=None):
     rclpy.init(args=args)
