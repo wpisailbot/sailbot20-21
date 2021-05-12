@@ -69,6 +69,15 @@ h6 {
 	margin-bottom: 40px;
 }
 
+/* Options Selection */
+
+.horiList {
+	 display: inline-block;
+	 margin-top: 10px;
+	 margin-left: 20px;
+	 font-size: 1rem;
+}
+
 
 /* TEMP LOCATIONS FOR DEMO */
 
