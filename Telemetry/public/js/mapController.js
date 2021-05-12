@@ -1,13 +1,21 @@
 let map, boatPath, latLines = [], lngLines = [], gridCenters = [], gridCenterPoints = [], debug = false, mapcenter = {}, gridCorners = {};
 
+
+
 const attitash = { lat: 42.8489, lng: -70.9829 };
-const startPathCoords = [{ lat: 42.849810669147935, lng: -70.98818573987138 }];
+const prescott = { lat: 42.275620, lng: -71.799100 };
+const quinsig = { lat: 42.277953, lng: -71.760713 };
+// const startPathCoords = [{ lat: 42.849810669147935, lng: -70.98818573987138 }];
+
 const defaultGridCorners = { topleft: { lat: 42.85414938719151, lng: -70.98833200038395 }, botleft: { lat: 42.84417554052568, lng: -70.98833200038395 }, botright: { lat: 42.84401759443596, lng: -70.97532473965633 }, topright: { lat: 42.85367747491202, lng: -70.97532473965633 }};
 
 const squareRad = 0.001; // 10 meters is 4th decimal places I think? (near the equator it is 11)
 
-mapcenter = attitash;
+
+mapcenter = quinsig;
+const startPathCoords = [{ lat: 42.277953, lng: -71.760713 }];
 gridCorners = defaultGridCorners;
+
 
 const boatSVG = {
     anchor: new google.maps.Point(200, 0),
@@ -204,25 +212,30 @@ const initMap = () => {
         map,
     });
 
+
+    new google.maps.Marker({
+        position: { lat: 42.277055, lng: -71.799924 },
+        icon: waypoint,
+        map,
+        title: 'second',
+    });
+
     // waypoint
     new google.maps.Marker({
-        position: { lat: 42.84780, lng: -70.9849 },
+
+        position: { lat: 42.276268, lng: -71.755619 }, // lake quinsig
+        // position: { lat: 42.277055, lng: -71.799924 }, // prescott parking lot
         icon: waypoint,
         map,
         title: 'second',
     });
 
-    new google.maps.Marker({
-        position: { lat: 42.84780, lng: -70.9809 },
-        icon: waypoint,
-        map,
-        title: 'second',
-    });
 
-    new google.maps.Marker({
-        position: { lat: 42.8499, lng: -70.9829 },
-        icon: waypoint,
-        map,
-        title: 'second',
-    });
+    // new google.maps.Marker({
+    //     position: { lat: 42.8499, lng: -70.9829 },
+    //     icon: waypoint,
+    //     map,
+    //     title: 'second',
+    // });
+
 };
